@@ -1,0 +1,23 @@
+[package]
+name = "aleo-python"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+pyo3 = { version = "0.16.5", features = ["extension-module"] }
+
+[dependencies.snarkvm]
+git = "https://github.com/harukama/snarkvm"
+branch = "unchecked"
+
+[build-dependencies]
+pyo3-build-config = "0.16.5"
+
+[lib]
+crate-type = ["cdylib"]
+name = "aleo"
+
+[profile.dev]
+opt-level = 1
+debug-assertions = false
