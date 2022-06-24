@@ -1,6 +1,6 @@
 [package]
 name = "aleo-python"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
@@ -8,6 +8,14 @@ edition = "2021"
 pyo3 = { version = "0.16.5", features = ["extension-module"] }
 
 [dependencies.snarkvm]
+git = "https://github.com/harukama/snarkvm"
+branch = "unchecked"
+
+[dependencies.snarkvm-algorithms]
+git = "https://github.com/harukama/snarkvm"
+branch = "unchecked"
+
+[dependencies.snarkvm-curves]
 git = "https://github.com/harukama/snarkvm"
 branch = "unchecked"
 
