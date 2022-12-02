@@ -1,26 +1,26 @@
 [package]
 name = "aleo-python"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
 
-pyo3 = { version = "0.16.5", features = ["extension-module"] }
+pyo3 = { version = "0.17.3", features = ["extension-module"] }
 
 [dependencies.snarkvm]
-git = "https://github.com/harukama/snarkvm"
-branch = "unchecked"
+version = "0.9.9"
 
 [dependencies.snarkvm-algorithms]
-git = "https://github.com/harukama/snarkvm"
-branch = "unchecked"
+version = "0.9.9"
 
 [dependencies.snarkvm-curves]
-git = "https://github.com/harukama/snarkvm"
-branch = "unchecked"
+version = "0.9.9"
+
+[dependencies.rand]
+version = "0.8.5"
 
 [build-dependencies]
-pyo3-build-config = "0.16.5"
+pyo3-build-config = "0.17.3"
 
 [lib]
 crate-type = ["cdylib"]
