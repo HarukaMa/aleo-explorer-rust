@@ -4,4 +4,6 @@ from .aleo import *
 
 __all__ = [
     "sign_nonce",
+    "bech32_encode",
+    "bech32_decode",
 ]

@@ -1,26 +1,29 @@
 [package]
 name = "aleo-python"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 
 [dependencies]
 
-pyo3 = { version = "0.17.3", features = ["extension-module"] }
+pyo3 = { version = "0.18.1", features = ["extension-module"] }
 
 [dependencies.snarkvm]
-version = "0.9.9"
+version = "0.9.13"
 
 [dependencies.snarkvm-algorithms]
-version = "0.9.9"
+version = "0.9.13"
 
 [dependencies.snarkvm-curves]
-version = "0.9.9"
+version = "0.9.13"
 
 [dependencies.rand]
 version = "0.8.5"
 
+[dependencies.bech32]
+version = "0.9.1"
+
 [build-dependencies]
-pyo3-build-config = "0.17.3"
+pyo3-build-config = "0.18.1"
 
 [lib]
 crate-type = ["cdylib"]
