@@ -5,7 +5,7 @@ use pyo3::exceptions;
 use pyo3::prelude::*;
 use snarkvm::prelude::traits::ToBits;
 use snarkvm::prelude::{Field, FromBytes, Identifier, Network, PrivateKey, ProgramID, Signature, Testnet3, ToBytes};
-use snarkvm_console_program::Plaintext;
+use snarkvm_console_program::{Plaintext, Value};
 
 #[pymodule]
 #[pyo3(name = "aleo")]
@@ -74,7 +74,7 @@ fn get_value_id(key_id: &str, value: &[u8]) -> PyResult<String> {
     let key_id =
         Field::<Testnet3>::from_str(key_id).map_err(|_| exceptions::PyValueError::new_err("invalid key id"))?;
     let value =
-        Plaintext::<Testnet3>::from_bytes_le(value).map_err(|_| exceptions::PyValueError::new_err("invalid value"))?;
+        Value::<Testnet3>::from_bytes_le(value).map_err(|_| exceptions::PyValueError::new_err("invalid value"))?;
     let value_hash = <Testnet3 as Network>::hash_bhp1024(&value.to_bits_le())
         .map_err(|_| exceptions::PyValueError::new_err("invalid value"))?;
     <Testnet3 as Network>::hash_bhp1024(&(key_id, value_hash).to_bits_le())
