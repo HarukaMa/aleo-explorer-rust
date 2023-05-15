@@ -1,29 +1,24 @@
 [package]
 name = "aleo-python"
-version = "0.5.2"
+version = "0.6.0"
 edition = "2021"
 
 [dependencies]
 
 pyo3 = { version = "0.18.1", features = ["extension-module"] }
 
-[dependencies.snarkvm]
-version = "0.11.2"
+snarkvm = "0.11.2"
+snarkvm-algorithms = "0.11.2"
+snarkvm-curves = "0.11.2"
+snarkvm-console-program = "0.11.2"
 
-[dependencies.snarkvm-algorithms]
-version = "0.11.2"
+leo-compiler = "1.7.0"
+leo-errors = "1.7.0"
+leo-span = "1.7.0"
 
-[dependencies.snarkvm-curves]
-version = "0.11.2"
-
-[dependencies.snarkvm-console-program]
-version = "0.11.2"
-
-[dependencies.rand]
-version = "0.8.5"
-
-[dependencies.bech32]
-version = "0.9.1"
+rand = "0.8.5"
+bech32 = "0.9.1"
+tempfile = "3.5.0"
 
 [build-dependencies]
 pyo3-build-config = "0.18.1"
