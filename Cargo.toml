@@ -1,6 +1,6 @@
 [package]
 name = "aleo-python"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2021"
 
 [dependencies]
@@ -11,6 +11,7 @@ snarkvm = "0.11.2"
 snarkvm-algorithms = "0.11.2"
 snarkvm-curves = "0.11.2"
 snarkvm-console-program = "0.11.2"
+snarkvm-synthesizer = "0.11.2"
 
 leo-compiler = "1.7.0"
 leo-errors = "1.7.0"

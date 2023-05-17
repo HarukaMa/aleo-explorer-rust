@@ -24,6 +24,7 @@ fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_key_id, m)?)?;
     m.add_function(wrap_pyfunction!(get_value_id, m)?)?;
     m.add_function(wrap_pyfunction!(compile_program, m)?)?;
+    m.add_function(wrap_pyfunction!(hash_bhp256, m)?)?;
     Ok(())
 }
 
@@ -122,4 +123,13 @@ fn compile_program(program: &str, program_name: &str) -> PyResult<Vec<u8>> {
             .to_bytes_le()
             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to serialize program: {e}")))
     })
+}
+
+#[pyfunction]
+fn hash_bhp256(input: &[u8]) -> PyResult<Vec<u8>> {
+    let value = Value::<N>::from_bytes_le(input).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
+    <N as Network>::hash_bhp256(&value.to_bits_le())
+        .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))?
+        .to_bytes_le()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))
 }
