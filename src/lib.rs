@@ -6,11 +6,11 @@ use leo_errors::emitter::Handler;
 use leo_span::symbol::create_session_if_not_set_then;
 use pyo3::exceptions;
 use pyo3::prelude::*;
-use snarkvm::prelude::traits::ToBits;
-use snarkvm::prelude::{
-    Field, FromBytes, Identifier, Network, PrivateKey, Program, ProgramID, Signature, Testnet3, ToBytes,
-};
-use snarkvm_console_program::{Plaintext, Value};
+use snarkvm_console_account::{PrivateKey, Signature};
+use snarkvm_console_network::prelude::{FromBytes, ToBytes};
+use snarkvm_console_network::{Testnet3, ToBits};
+use snarkvm_console_program::{Field, Identifier, Network, Plaintext, ProgramID, Value};
+use snarkvm_synthesizer::Program;
 
 type N = Testnet3;
 
@@ -24,6 +24,7 @@ fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_key_id, m)?)?;
     m.add_function(wrap_pyfunction!(get_value_id, m)?)?;
     m.add_function(wrap_pyfunction!(compile_program, m)?)?;
+    m.add_function(wrap_pyfunction!(get_program_from_str, m)?)?;
     m.add_function(wrap_pyfunction!(hash_bhp256, m)?)?;
     Ok(())
 }
@@ -126,8 +127,18 @@ fn compile_program(program: &str, program_name: &str) -> PyResult<Vec<u8>> {
 }
 
 #[pyfunction]
+fn get_program_from_str(program: &str) -> PyResult<Vec<u8>> {
+    let program = Program::<N>::from_str(program)
+        .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to parse program: {e}")))?;
+    program
+        .to_bytes_le()
+        .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to serialize program: {e}")))
+}
+
+#[pyfunction]
 fn hash_bhp256(input: &[u8]) -> PyResult<Vec<u8>> {
-    let value = Value::<N>::from_bytes_le(input).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
+    let value = Value::<N>::from_bytes_le(input)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
     <N as Network>::hash_bhp256(&value.to_bits_le())
         .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))?
         .to_bytes_le()
