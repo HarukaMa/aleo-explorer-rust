@@ -92,6 +92,9 @@ fn get_value_id(key_id: &str, value: &[u8]) -> PyResult<String> {
 #[pyfunction]
 fn compile_program(program: &str, program_name: &str) -> PyResult<Vec<u8>> {
     create_session_if_not_set_then(|_| {
+        // disable output color
+        std::env::set_var("LEO_TESTFRAMEWORK", "1");
+
         let temp_dir = tempfile::tempdir()
             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to create temp dir: {e}")))?;
 
