@@ -6,13 +6,17 @@ use leo_errors::emitter::Handler;
 use leo_span::symbol::create_session_if_not_set_then;
 use pyo3::exceptions;
 use pyo3::prelude::*;
+use snarkvm_circuit_environment::{Eject, Inject, Mode, ToBits as AToBits};
+use snarkvm_circuit_network::{Aleo, AleoV0};
+use snarkvm_circuit_program::{Literal as ALiteral, Value as AValue};
 use snarkvm_console_account::{PrivateKey, Signature};
 use snarkvm_console_network::prelude::{FromBytes, ToBytes};
 use snarkvm_console_network::{Testnet3, ToBits};
-use snarkvm_console_program::{Field, Identifier, Network, Plaintext, ProgramID, Value};
+use snarkvm_console_program::{Field, Identifier, Literal, LiteralType, Network, Plaintext, ProgramID, Value};
 use snarkvm_synthesizer::Program;
 
 type N = Testnet3;
+type A = AleoV0;
 
 #[pymodule]
 #[pyo3(name = "aleo")]
@@ -25,7 +29,8 @@ fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_value_id, m)?)?;
     m.add_function(wrap_pyfunction!(compile_program, m)?)?;
     m.add_function(wrap_pyfunction!(get_program_from_str, m)?)?;
-    m.add_function(wrap_pyfunction!(hash_bhp256, m)?)?;
+    m.add_function(wrap_pyfunction!(hash_ops, m)?)?;
+    m.add_function(wrap_pyfunction!(field_ops, m)?)?;
     Ok(())
 }
 
@@ -70,12 +75,13 @@ fn get_mapping_id(program_id: &str, mapping_name: &str) -> PyResult<String> {
 fn get_key_id(mapping_id: &str, key: &[u8]) -> PyResult<String> {
     let mapping_id =
         Field::<N>::from_str(mapping_id).map_err(|_| exceptions::PyValueError::new_err("invalid mapping id"))?;
-    let key = Plaintext::<N>::from_bytes_le(key).map_err(|_| exceptions::PyValueError::new_err("invalid key"))?;
+    let key = Plaintext::<N>::from_bytes_le(key)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid key: {e}")))?;
     let key_hash = <N as Network>::hash_bhp1024(&key.to_bits_le())
-        .map_err(|_| exceptions::PyValueError::new_err("invalid key"))?;
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid key: {e}")))?;
     <N as Network>::hash_bhp1024(&(mapping_id, key_hash).to_bits_le())
         .map(|hash| hash.to_string())
-        .map_err(|_| exceptions::PyValueError::new_err("invalid key id"))
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid key id: {e}")))
 }
 
 #[pyfunction]
@@ -139,11 +145,58 @@ fn get_program_from_str(program: &str) -> PyResult<Vec<u8>> {
 }
 
 #[pyfunction]
-fn hash_bhp256(input: &[u8]) -> PyResult<Vec<u8>> {
+fn hash_ops(input: &[u8], type_: &str, destination_type: &[u8]) -> PyResult<Vec<u8>> {
     let value = Value::<N>::from_bytes_le(input)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
-    <N as Network>::hash_bhp256(&value.to_bits_le())
-        .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))?
+    let avalue = AValue::<A>::new(Mode::Public, value.clone());
+    let output = match type_ {
+        "bhp256" => ALiteral::Group(<A as Aleo>::hash_to_group_bhp256(&avalue.to_bits_le())),
+        "bhp512" => ALiteral::Group(<A as Aleo>::hash_to_group_bhp512(&avalue.to_bits_le())),
+        "bhp768" => ALiteral::Group(<A as Aleo>::hash_to_group_bhp768(&avalue.to_bits_le())),
+        "bhp1024" => ALiteral::Group(<A as Aleo>::hash_to_group_bhp1024(&avalue.to_bits_le())),
+        _ => return Err(exceptions::PyNotImplementedError::new_err("")),
+    };
+    let output = output
+        .downcast_lossy(
+            LiteralType::from_bytes_le(destination_type)
+                .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
+        )
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to downcast: {e}")))?;
+    match output.eject_value() {
+        Literal::Address(v) => v.to_bytes_le(),
+        Literal::Boolean(v) => v.to_bytes_le(),
+        Literal::Field(v) => v.to_bytes_le(),
+        Literal::Group(v) => v.to_bytes_le(),
+        Literal::I8(v) => v.to_bytes_le(),
+        Literal::I16(v) => v.to_bytes_le(),
+        Literal::I32(v) => v.to_bytes_le(),
+        Literal::I64(v) => v.to_bytes_le(),
+        Literal::I128(v) => v.to_bytes_le(),
+        Literal::U8(v) => v.to_bytes_le(),
+        Literal::U16(v) => v.to_bytes_le(),
+        Literal::U32(v) => v.to_bytes_le(),
+        Literal::U64(v) => v.to_bytes_le(),
+        Literal::U128(v) => v.to_bytes_le(),
+        Literal::Scalar(v) => v.to_bytes_le(),
+        Literal::String(v) => v.to_bytes_le(),
+    }
+    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))
+}
+
+#[pyfunction]
+fn field_ops(a: &[u8], b: &[u8], op: &str) -> PyResult<Vec<u8>> {
+    let a =
+        Field::<N>::from_bytes_le(a).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
+    let b =
+        Field::<N>::from_bytes_le(b).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
+    let result = match op {
+        "add" => a + b,
+        "sub" => a - b,
+        "mul" => a * b,
+        "div" => a / b,
+        _ => return Err(exceptions::PyValueError::new_err("invalid operation")),
+    };
+    result
         .to_bytes_le()
-        .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))
+        .map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))
 }
