@@ -203,15 +203,17 @@ fn field_ops(a: &[u8], b: &[u8], op: &str) -> PyResult<Vec<u8>> {
     let b =
         Field::<N>::from_bytes_le(b).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
     let result = match op {
-        "add" => a + b,
-        "sub" => a - b,
-        "mul" => a * b,
-        "div" => a / b,
+        "add" => Literal::Field(a + b),
+        "sub" => Literal::Field(a - b),
+        "mul" => Literal::Field(a * b),
+        "div" => Literal::Field(a / b),
+        "gte" => Literal::Boolean(Boolean::new(a >= b)),
+        "gt" => Literal::Boolean(Boolean::new(a > b)),
+        "lte" => Literal::Boolean(Boolean::new(a <= b)),
+        "lt" => Literal::Boolean(Boolean::new(a < b)),
         _ => return Err(exceptions::PyValueError::new_err("invalid operation")),
     };
-    result
-        .to_bytes_le()
-        .map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))
+    literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))
 }
 
 #[pyfunction]
