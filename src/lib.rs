@@ -252,6 +252,8 @@ fn finalize_random_seed(
     block_cumulative_proof_target: u128,
     previous_block_hash: &[u8],
 ) -> PyResult<PyObject> {
+    let previous_block_hash = <N as Network>::BlockHash::from_bytes_le(previous_block_hash)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid block hash: {e}")))?;
     let mut preimage = Vec::with_capacity(605);
     preimage.extend_from_slice(&block_round.to_bits_le());
     preimage.extend_from_slice(&block_height.to_bits_le());
@@ -276,6 +278,19 @@ fn chacha_random_seed(
     destination_type_id: u8,
     additional_seeds: Vec<&[u8]>,
 ) -> PyResult<PyObject> {
+    let transition_id = <N as Network>::TransitionID::from_bytes_le(transition_id)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid transition id: {e}")))?;
+    let program_id = ProgramID::<N>::from_bytes_le(program_id)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid program id: {e}")))?;
+    let function_name = Identifier::<N>::from_bytes_le(function_name)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid function name: {e}")))?;
+    let mut additional_seeds_value = Vec::with_capacity(2);
+    for seed in additional_seeds {
+        additional_seeds_value.push(
+            Value::<N>::from_bytes_le(seed)
+                .map_err(|e| exceptions::PyValueError::new_err(format!("invalid additional seeds: {e}")))?,
+        )
+    }
     let mut preimage = Vec::new();
     preimage.extend_from_slice(&state_seed.to_bits_le());
     preimage.extend_from_slice(&transition_id.to_bits_le());
@@ -283,7 +298,7 @@ fn chacha_random_seed(
     preimage.extend_from_slice(&function_name.to_bits_le());
     preimage.extend_from_slice(&destination_locator.to_bits_le());
     preimage.extend_from_slice(&destination_type_id.to_bits_le());
-    for seed in additional_seeds {
+    for seed in additional_seeds_value {
         preimage.extend_from_slice(&seed.to_bits_le());
     }
     let result = N::hash_bhp1024(&preimage)
