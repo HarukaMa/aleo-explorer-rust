@@ -126,8 +126,26 @@ fn get_value_id(key_id: &str, value: &[u8]) -> PyResult<String> {
         .map_err(|_| exceptions::PyValueError::new_err("invalid value id"))
 }
 
+struct TempChdir {
+    old_cwd: std::path::PathBuf,
+}
+
+impl TempChdir {
+    fn chdir(path: &std::path::Path) -> anyhow::Result<Self> {
+        let old_cwd = std::env::current_dir()?;
+        std::env::set_current_dir(path)?;
+        Ok(Self { old_cwd })
+    }
+}
+
+impl Drop for TempChdir {
+    fn drop(&mut self) {
+        std::env::set_current_dir(&self.old_cwd).unwrap();
+    }
+}
+
 #[pyfunction]
-fn compile_program(py: Python, program: &str, program_name: &str) -> PyResult<PyObject> {
+fn compile_program(py: Python, program: &str, program_name: &str, imports: Vec<(&str, &str)>) -> PyResult<PyObject> {
     create_session_if_not_set_then(|_| {
         // disable output color
         std::env::set_var("LEO_TESTFRAMEWORK", "1");
@@ -139,9 +157,34 @@ fn compile_program(py: Python, program: &str, program_name: &str) -> PyResult<Py
         std::fs::create_dir(src_dir.clone()).map_err(|e| {
             exceptions::PyRuntimeError::new_err(format!("unable to initialize directory structure: {e}"))
         })?;
+
+        let import_dir = src_dir.join("imports");
+        std::fs::create_dir(import_dir.clone()).map_err(|e| {
+            exceptions::PyRuntimeError::new_err(format!("unable to initialize directory structure: {e}"))
+        })?;
+
+        let _tempcd = TempChdir::chdir(&src_dir)
+            .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to change directory: {e}")))?;
+
         std::fs::write(src_dir.join(format!("{program_name}.leo")), program).map_err(|e| {
             exceptions::PyRuntimeError::new_err(format!("unable to write program to temp directory: {e}"))
         })?;
+
+        for (name, program) in imports {
+            if name == "credits" {
+                std::fs::write(
+                    import_dir.join(format!("{name}.leo")),
+                    include_bytes!("../res/credits.leo"),
+                )
+                .map_err(|e| {
+                    exceptions::PyRuntimeError::new_err(format!("unable to write program to temp directory: {e}"))
+                })?;
+            } else {
+                std::fs::write(import_dir.join(format!("{name}.leo")), program).map_err(|e| {
+                    exceptions::PyRuntimeError::new_err(format!("unable to write program to temp directory: {e}"))
+                })?;
+            }
+        }
 
         let build_dir = temp_dir.path().join("build");
 

@@ -1,33 +1,33 @@
 [package]
 name = "aleo-python"
-version = "0.8.1"
+version = "0.8.2"
 edition = "2021"
 
 [dependencies]
 
 pyo3 = { version = "0.19.1", features = ["extension-module"] }
 
-snarkvm-algorithms = "0.14.1"
-snarkvm-circuit-algorithms = "0.14.1"
-snarkvm-circuit-environment = "0.14.1"
-snarkvm-circuit-network = "0.14.1"
-snarkvm-circuit-program = "0.14.1"
-snarkvm-curves = "0.14.1"
-snarkvm-console-account = "0.14.1"
-snarkvm-console-network = "0.14.1"
-snarkvm-console-program = "0.14.1"
-snarkvm-synthesizer-program = "0.14.1"
-snarkvm-utilities = "0.14.1"
+snarkvm-algorithms = "0.14.5"
+snarkvm-circuit-algorithms = "0.14.5"
+snarkvm-circuit-environment = "0.14.5"
+snarkvm-circuit-network = "0.14.5"
+snarkvm-circuit-program = "0.14.5"
+snarkvm-curves = "0.14.5"
+snarkvm-console-account = "0.14.5"
+snarkvm-console-network = "0.14.5"
+snarkvm-console-program = "0.14.5"
+snarkvm-synthesizer-program = "0.14.5"
+snarkvm-utilities = "0.14.5"
 
-leo-compiler = "1.8.3"
-leo-errors = "1.8.3"
-leo-span = "1.8.3"
+leo-compiler = "1.9.1"
+leo-errors = "1.9.1"
+leo-span = "1.9.1"
 
-anyhow = "1.0.71"
+anyhow = "1.0.72"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 bech32 = "0.9.1"
-tempfile = "3.6.0"
+tempfile = "3.7.0"
 
 [build-dependencies]
 pyo3-build-config = "0.19.1"
