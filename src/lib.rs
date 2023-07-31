@@ -11,7 +11,7 @@ use snarkvm_circuit_network::{Aleo, AleoV0};
 use snarkvm_circuit_program::{Literal as ALiteral, Value as AValue};
 use snarkvm_console_account::{PrivateKey, Signature};
 use snarkvm_console_network::{
-    prelude::{FromBytes, ToBytes},
+    prelude::{FromBytes, Pow, ToBytes},
     Testnet3,
     ToBits,
 };
@@ -279,6 +279,7 @@ fn field_ops(py: Python, a: &[u8], b: &[u8], op: &str) -> PyResult<PyObject> {
         "gt" => Literal::Boolean(Boolean::new(a > b)),
         "lte" => Literal::Boolean(Boolean::new(a <= b)),
         "lt" => Literal::Boolean(Boolean::new(a < b)),
+        "pow" => Literal::Field(a.pow(b)),
         _ => return Err(exceptions::PyValueError::new_err("invalid operation")),
     };
     let result =
