@@ -58,6 +58,7 @@ fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_program, m)?)?;
     m.add_function(wrap_pyfunction!(hash_ops, m)?)?;
     m.add_function(wrap_pyfunction!(field_ops, m)?)?;
+    m.add_function(wrap_pyfunction!(field_cast, m)?)?;
     m.add_function(wrap_pyfunction!(finalize_random_seed, m)?)?;
     m.add_function(wrap_pyfunction!(chacha_random_seed, m)?)?;
     m.add_function(wrap_pyfunction!(chacha_random_value, m)?)?;
@@ -267,9 +268,9 @@ fn hash_ops(py: Python, input: &[u8], type_: &str, destination_type: &[u8]) -> P
 #[pyfunction]
 fn field_ops(py: Python, a: &[u8], b: &[u8], op: &str) -> PyResult<PyObject> {
     let a =
-        Field::<N>::from_bytes_le(a).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
+        Field::<N>::from_bytes_le(a).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input a: {e}")))?;
     let b =
-        Field::<N>::from_bytes_le(b).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
+        Field::<N>::from_bytes_le(b).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input b: {e}")))?;
     let result = match op {
         "add" => Literal::Field(a + b),
         "sub" => Literal::Field(a - b),
@@ -284,6 +285,26 @@ fn field_ops(py: Python, a: &[u8], b: &[u8], op: &str) -> PyResult<PyObject> {
     };
     let result =
         literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))?;
+    Ok(PyBytes::new(py, &result).into())
+}
+
+#[pyfunction]
+fn field_cast(py: Python, input: &[u8], destination_type: &[u8], lossy: bool) -> PyResult<PyObject> {
+    let field = Field::<N>::from_bytes_le(input)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
+    let cast_function = match lossy {
+        true => Literal::<N>::downcast_lossy,
+        false => Literal::<N>::downcast,
+    };
+    let literal = Literal::Field(field);
+    let result = cast_function(
+        &literal,
+        LiteralType::from_bytes_le(destination_type)
+            .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
+    )
+    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
+    let result = literal_to_bytes(result)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new(py, &result).into())
 }
 

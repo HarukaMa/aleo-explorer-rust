@@ -28,6 +28,9 @@ def hash_ops(input: bytes, hash_type: str, destination_type: bytes) -> bytes: ..
 def field_ops(a: bytes, b: bytes, op: str) -> bytes: ...
 
 
+def field_cast(input: bytes, destination_type: bytes, lossy: bool) -> bytes: ...
+
+
 def finalize_random_seed(
         block_round: int,
         block_height: int,
