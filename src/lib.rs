@@ -6,9 +6,6 @@ use leo_errors::emitter::Handler;
 use leo_span::symbol::create_session_if_not_set_then;
 use pyo3::{exceptions, prelude::*, types::PyBytes};
 use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
-use snarkvm_circuit_environment::{Eject, Inject, Mode, ToBits as AToBits};
-use snarkvm_circuit_network::{Aleo, AleoV0};
-use snarkvm_circuit_program::{Literal as ALiteral, Value as AValue};
 use snarkvm_console_account::{PrivateKey, Signature};
 use snarkvm_console_network::{
     prelude::{FromBytes, Pow, ToBytes},
@@ -43,7 +40,6 @@ use snarkvm_synthesizer_program::Program;
 use snarkvm_utilities::{ToBits as UToBits, Uniform};
 
 type N = Testnet3;
-type A = AleoV0;
 
 #[pymodule]
 #[pyo3(name = "aleo")]
@@ -246,21 +242,22 @@ fn literal_to_bytes(literal: Literal<N>) -> anyhow::Result<Vec<u8>> {
 fn hash_ops(py: Python, input: &[u8], type_: &str, destination_type: &[u8]) -> PyResult<PyObject> {
     let value = Value::<N>::from_bytes_le(input)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
-    let avalue = AValue::<A>::new(Mode::Public, value.clone());
+    let value_bits = value.to_bits_le();
     let output = match type_ {
-        "bhp256" => ALiteral::Group(A::hash_to_group_bhp256(&avalue.to_bits_le())),
-        "bhp512" => ALiteral::Group(A::hash_to_group_bhp512(&avalue.to_bits_le())),
-        "bhp768" => ALiteral::Group(A::hash_to_group_bhp768(&avalue.to_bits_le())),
-        "bhp1024" => ALiteral::Group(A::hash_to_group_bhp1024(&avalue.to_bits_le())),
+        "bhp256" => N::hash_to_group_bhp256(&value_bits),
+        "bhp512" => N::hash_to_group_bhp512(&value_bits),
+        "bhp768" => N::hash_to_group_bhp768(&value_bits),
+        "bhp1024" => N::hash_to_group_bhp1024(&value_bits),
         _ => return Err(exceptions::PyNotImplementedError::new_err("")),
-    };
-    let output = output
+    }
+    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to hash: {e}")))?;
+    let output = Literal::Group(output)
         .downcast_lossy(
             LiteralType::from_bytes_le(destination_type)
                 .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
         )
-        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to downcast: {e}")))?;
-    let result = literal_to_bytes(output.eject_value())
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?;
+    let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new(py, &result).into())
 }

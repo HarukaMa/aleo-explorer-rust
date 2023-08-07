@@ -1,6 +1,6 @@
 [package]
 name = "aleo-python"
-version = "0.8.4"
+version = "0.8.5"
 edition = "2021"
 
 [dependencies]
@@ -8,10 +8,6 @@ edition = "2021"
 pyo3 = { version = "0.19.1", features = ["extension-module"] }
 
 snarkvm-algorithms = "0.14.5"
-snarkvm-circuit-algorithms = "0.14.5"
-snarkvm-circuit-environment = "0.14.5"
-snarkvm-circuit-network = "0.14.5"
-snarkvm-circuit-program = "0.14.5"
 snarkvm-curves = "0.14.5"
 snarkvm-console-account = "0.14.5"
 snarkvm-console-network = "0.14.5"
