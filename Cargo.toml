@@ -1,11 +1,13 @@
 [package]
 name = "aleo-python"
-version = "0.8.5"
+version = "0.9.0"
 edition = "2021"
 
 [dependencies]
 
-pyo3 = { version = "0.19.1", features = ["extension-module"] }
+pyo3 = { version = "0.19.1", features = ["extension-module", "num-bigint"] }
+
+num-bigint = "0.4.3"
 
 snarkvm-algorithms = "0.14.5"
 snarkvm-curves = "0.14.5"
