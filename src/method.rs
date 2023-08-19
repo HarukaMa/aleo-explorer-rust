@@ -309,6 +309,27 @@ pub fn commit_ops(
 }
 
 #[pyfunction]
+pub fn address_cast(py: Python, input: &str, destination_type: ExLiteralType, lossy: bool) -> PyResult<PyObject> {
+    let input =
+        Address::<N>::from_str(input).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
+    let cast_function = match lossy {
+        true => Literal::<N>::downcast_lossy,
+        false => Literal::<N>::downcast,
+    };
+    let literal = Literal::Address(input);
+    let output = cast_function(
+        &literal,
+        destination_type
+            .try_into()
+            .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
+    )
+    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to downcast to destination type: {e}")))?;
+    let result = literal_to_bytes(output)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
+    Ok(PyBytes::new(py, &result).into())
+}
+
+#[pyfunction]
 pub fn field_ops(py: Python, a: ExField, b: ExField, op: &str) -> PyResult<PyObject> {
     let a: Field<N> = a
         .try_into()

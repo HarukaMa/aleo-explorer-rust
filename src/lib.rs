@@ -16,6 +16,7 @@ fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_program, m)?)?;
     m.add_function(wrap_pyfunction!(hash_ops, m)?)?;
     m.add_function(wrap_pyfunction!(commit_ops, m)?)?;
+    m.add_function(wrap_pyfunction!(address_cast, m)?)?;
     m.add_function(wrap_pyfunction!(field_ops, m)?)?;
     m.add_function(wrap_pyfunction!(field_cast, m)?)?;
     m.add_function(wrap_pyfunction!(group_ops, m)?)?;
