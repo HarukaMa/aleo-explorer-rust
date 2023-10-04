@@ -265,8 +265,8 @@ pub fn hash_ops(py: Python, input: &[u8], type_: &str, destination_type: ExLiter
         )
     };
     let output = output
-        .downcast_lossy(destination_type)
-        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to downcast to destination type: {e}")))?;
+        .cast_lossy(destination_type)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast to destination type: {e}")))?;
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new(py, &result).into())
@@ -297,12 +297,12 @@ pub fn commit_ops(
     }
     .map_err(|e| exceptions::PyAssertionError::new_err(format!("failed to commit: {e}")))?;
     let output = Literal::Group(output)
-        .downcast_lossy(
+        .cast_lossy(
             destination_type
                 .try_into()
                 .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
         )
-        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to downcast to destination type: {e}")))?;
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast to destination type: {e}")))?;
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new(py, &result).into())
@@ -313,8 +313,8 @@ pub fn address_cast(py: Python, input: &str, destination_type: ExLiteralType, lo
     let input =
         Address::<N>::from_str(input).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
     let cast_function = match lossy {
-        true => Literal::<N>::downcast_lossy,
-        false => Literal::<N>::downcast,
+        true => Literal::<N>::cast_lossy,
+        false => Literal::<N>::cast,
     };
     let literal = Literal::Address(input);
     let output = cast_function(
@@ -323,7 +323,7 @@ pub fn address_cast(py: Python, input: &str, destination_type: ExLiteralType, lo
             .try_into()
             .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
     )
-    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to downcast to destination type: {e}")))?;
+    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast to destination type: {e}")))?;
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new(py, &result).into())
@@ -371,8 +371,8 @@ pub fn field_cast(py: Python, input: ExField, destination_type: ExLiteralType, l
         .try_into()
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
     let cast_function = match lossy {
-        true => Literal::<N>::downcast_lossy,
-        false => Literal::<N>::downcast,
+        true => Literal::<N>::cast_lossy,
+        false => Literal::<N>::cast,
     };
     let literal = Literal::Field(field);
     let result = cast_function(
@@ -429,8 +429,8 @@ pub fn group_cast(py: Python, input: ExGroup, destination_type: ExLiteralType, l
         .try_into()
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
     let cast_function = match lossy {
-        true => Literal::<N>::downcast_lossy,
-        false => Literal::<N>::downcast,
+        true => Literal::<N>::cast_lossy,
+        false => Literal::<N>::cast,
     };
     let literal = Literal::Group(group);
     let result = cast_function(
@@ -489,8 +489,8 @@ pub fn scalar_cast(py: Python, input: ExScalar, destination_type: ExLiteralType,
         .try_into()
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
     let cast_function = match lossy {
-        true => Literal::<N>::downcast_lossy,
-        false => Literal::<N>::downcast,
+        true => Literal::<N>::cast_lossy,
+        false => Literal::<N>::cast,
     };
     let literal = Literal::Scalar(scalar);
     let result = cast_function(
