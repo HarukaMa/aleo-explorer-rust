@@ -26,5 +26,6 @@ fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(finalize_random_seed, m)?)?;
     m.add_function(wrap_pyfunction!(chacha_random_seed, m)?)?;
     m.add_function(wrap_pyfunction!(chacha_random_value, m)?)?;
+    m.add_function(wrap_pyfunction!(signature_to_address, m)?)?;
     Ok(())
 }

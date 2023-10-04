@@ -594,9 +594,17 @@ pub fn chacha_random_value(py: Python, random_seed: &[u8], destination_type: ExL
         LiteralType::U64 => Literal::U64(U64::rand(&mut rng)),
         LiteralType::U128 => Literal::U128(U128::rand(&mut rng)),
         LiteralType::Scalar => Literal::Scalar(Scalar::rand(&mut rng)),
+        LiteralType::Signature => return Err(exceptions::PyValueError::new_err("invalid destination type")),
         LiteralType::String => return Err(exceptions::PyValueError::new_err("invalid destination type")),
     };
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new(py, &result).into())
+}
+
+#[pyfunction]
+pub fn signature_to_address(py: Python, signature: &str) -> PyResult<String> {
+    let signature =
+        Signature::<N>::from_str(signature).map_err(|_| exceptions::PyValueError::new_err("invalid signature"))?;
+    Ok(signature.to_address().to_string())
 }
