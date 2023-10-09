@@ -1,6 +1,6 @@
 [package]
 name = "aleo-python"
-version = "0.10.0-alpha.1"
+version = "0.10.0-alpha.2"
 edition = "2021"
 
 [dependencies]
@@ -9,13 +9,13 @@ pyo3 = { version = "0.19.2", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.4"
 
-snarkvm-algorithms = "0.15.0"
-snarkvm-curves = "0.15.0"
-snarkvm-console-account = "0.15.0"
-snarkvm-console-network = "0.15.0"
-snarkvm-console-program = "0.15.0"
-snarkvm-synthesizer-program = "0.15.0"
-snarkvm-utilities = "0.15.0"
+snarkvm-algorithms = "0.15.3"
+snarkvm-curves = "0.15.3"
+snarkvm-console-account = "0.15.3"
+snarkvm-console-network = "0.15.3"
+snarkvm-console-program = "0.15.3"
+snarkvm-synthesizer-program = "0.15.3"
+snarkvm-utilities = "0.15.3"
 
 leo-compiler = "1.9.3"
 leo-errors = "1.9.3"

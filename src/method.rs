@@ -6,7 +6,7 @@ use leo_errors::emitter::Handler;
 use leo_span::symbol::create_session_if_not_set_then;
 use pyo3::{exceptions, prelude::*, types::PyBytes};
 use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
-use snarkvm_console_account::{PrivateKey, Signature};
+use snarkvm_console_account::{Environment, PrivateKey, Signature};
 use snarkvm_console_network::{
     prelude::{FromBytes, Pow, ToBytes},
     Testnet3,
@@ -41,8 +41,9 @@ use snarkvm_console_program::{
     U64,
     U8,
 };
+use snarkvm_curves::bls12_377::{Fq, G1Affine};
 use snarkvm_synthesizer_program::Program;
-use snarkvm_utilities::{ToBits as UToBits, Uniform};
+use snarkvm_utilities::{CanonicalDeserialize, CanonicalSerialize, ToBits as UToBits, Uniform};
 
 use crate::class::*;
 
@@ -603,8 +604,39 @@ pub fn chacha_random_value(py: Python, random_seed: &[u8], destination_type: ExL
 }
 
 #[pyfunction]
-pub fn signature_to_address(py: Python, signature: &str) -> PyResult<String> {
+pub fn signature_to_address(signature: &str) -> PyResult<String> {
     let signature =
         Signature::<N>::from_str(signature).map_err(|_| exceptions::PyValueError::new_err("invalid signature"))?;
     Ok(signature.to_address().to_string())
+}
+
+#[pyfunction]
+pub fn deserialize_g1affine(py: Python, data: &[u8]) -> PyResult<(PyObject, PyObject, bool)> {
+    let affine = G1Affine::deserialize_compressed(data)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid data: {e}")))?;
+    let x = affine
+        .x
+        .to_bytes_le()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid x: {e}")))?;
+    let y = affine
+        .y
+        .to_bytes_le()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid y: {e}")))?;
+    Ok((
+        PyBytes::new(py, &x).into(),
+        PyBytes::new(py, &y).into(),
+        affine.infinity,
+    ))
+}
+
+#[pyfunction]
+pub fn serialize_g1affine(py: Python, x: &[u8], y: &[u8], infinity: bool) -> PyResult<PyObject> {
+    let x = Fq::from_bytes_le(x).map_err(|e| exceptions::PyValueError::new_err(format!("invalid x: {e}")))?;
+    let y = Fq::from_bytes_le(y).map_err(|e| exceptions::PyValueError::new_err(format!("invalid y: {e}")))?;
+    let affine = G1Affine::new(x, y, infinity);
+    let mut bytes = Vec::<u8>::new();
+    affine
+        .serialize_compressed(&mut bytes)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("serialization failed: {e}")))?;
+    Ok(PyBytes::new(py, &*bytes).into())
 }
