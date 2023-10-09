@@ -638,5 +638,5 @@ pub fn serialize_g1affine(py: Python, x: &[u8], y: &[u8], infinity: bool) -> PyR
     affine
         .serialize_compressed(&mut bytes)
         .map_err(|e| exceptions::PyValueError::new_err(format!("serialization failed: {e}")))?;
-    Ok(PyBytes::new(py, &*bytes).into())
+    Ok(PyBytes::new(py, &bytes).into())
 }
