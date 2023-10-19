@@ -1,21 +1,21 @@
 [package]
 name = "aleo-python"
-version = "0.10.0-alpha.2"
+version = "0.10.0-alpha.3"
 edition = "2021"
 
 [dependencies]
 
-pyo3 = { version = "0.19.2", features = ["extension-module", "num-bigint"] }
+pyo3 = { version = "0.20.0", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.4"
 
-snarkvm-algorithms = "0.15.3"
-snarkvm-curves = "0.15.3"
-snarkvm-console-account = "0.15.3"
-snarkvm-console-network = "0.15.3"
-snarkvm-console-program = "0.15.3"
-snarkvm-synthesizer-program = "0.15.3"
-snarkvm-utilities = "0.15.3"
+snarkvm-algorithms = "0.15.4"
+snarkvm-curves = "0.15.4"
+snarkvm-console-account = "0.15.4"
+snarkvm-console-network = "0.15.4"
+snarkvm-console-program = "0.15.4"
+snarkvm-synthesizer-program = "0.15.4"
+snarkvm-utilities = "0.15.4"
 
 leo-compiler = "1.9.3"
 leo-errors = "1.9.3"
@@ -28,7 +28,7 @@ bech32 = "0.9.1"
 tempfile = "3.8.0"
 
 [build-dependencies]
-pyo3-build-config = "0.19.2"
+pyo3-build-config = "0.20.0"
 
 [lib]
 crate-type = ["cdylib"]

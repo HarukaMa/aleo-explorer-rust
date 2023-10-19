@@ -6,7 +6,7 @@ use leo_errors::emitter::Handler;
 use leo_span::symbol::create_session_if_not_set_then;
 use pyo3::{exceptions, prelude::*, types::PyBytes};
 use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
-use snarkvm_console_account::{Environment, PrivateKey, Signature};
+use snarkvm_console_account::{ComputeKey, Environment, PrivateKey, Signature};
 use snarkvm_console_network::{
     prelude::{FromBytes, Pow, ToBytes},
     Testnet3,
@@ -82,20 +82,20 @@ pub fn get_mapping_id(program_id: &str, mapping_name: &str) -> PyResult<String> 
         ProgramID::<N>::from_str(program_id).map_err(|_| exceptions::PyValueError::new_err("invalid program id"))?;
     let mapping_name = Identifier::<N>::from_str(mapping_name)
         .map_err(|_| exceptions::PyValueError::new_err("invalid mapping name"))?;
-    N::hash_bhp1024(&(program_id, mapping_name).to_bits_le())
+    N::hash_bhp1024(&(program_id, false, mapping_name).to_bits_le())
         .map(|hash| hash.to_string())
         .map_err(|_| exceptions::PyValueError::new_err("invalid mapping id"))
 }
 
 #[pyfunction]
-pub fn get_key_id(mapping_id: &str, key: &[u8]) -> PyResult<String> {
-    let mapping_id =
-        Field::<N>::from_str(mapping_id).map_err(|_| exceptions::PyValueError::new_err("invalid mapping id"))?;
+pub fn get_key_id(program_id: &str, mapping_name: &str, key: &[u8]) -> PyResult<String> {
+    let program_id =
+        ProgramID::<N>::from_str(program_id).map_err(|_| exceptions::PyValueError::new_err("invalid program id"))?;
+    let mapping_name = Identifier::<N>::from_str(mapping_name)
+        .map_err(|_| exceptions::PyValueError::new_err("invalid mapping name"))?;
     let key = Plaintext::<N>::from_bytes_le(key)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid key: {e}")))?;
-    let key_hash = N::hash_bhp1024(&key.to_bits_le())
-        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid key: {e}")))?;
-    N::hash_bhp1024(&(mapping_id, key_hash).to_bits_le())
+    N::hash_bhp1024(&(program_id, false, mapping_name, false, key).to_bits_le())
         .map(|hash| hash.to_string())
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid key id: {e}")))
 }
@@ -104,9 +104,7 @@ pub fn get_key_id(mapping_id: &str, key: &[u8]) -> PyResult<String> {
 pub fn get_value_id(key_id: &str, value: &[u8]) -> PyResult<String> {
     let key_id = Field::<N>::from_str(key_id).map_err(|_| exceptions::PyValueError::new_err("invalid key id"))?;
     let value = Value::<N>::from_bytes_le(value).map_err(|_| exceptions::PyValueError::new_err("invalid value"))?;
-    let value_hash =
-        N::hash_bhp1024(&value.to_bits_le()).map_err(|_| exceptions::PyValueError::new_err("invalid value"))?;
-    N::hash_bhp1024(&(key_id, value_hash).to_bits_le())
+    N::hash_bhp1024(&(key_id, value).to_bits_le())
         .map(|hash| hash.to_string())
         .map_err(|_| exceptions::PyValueError::new_err("invalid value id"))
 }
