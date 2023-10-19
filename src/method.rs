@@ -104,7 +104,9 @@ pub fn get_key_id(program_id: &str, mapping_name: &str, key: &[u8]) -> PyResult<
 pub fn get_value_id(key_id: &str, value: &[u8]) -> PyResult<String> {
     let key_id = Field::<N>::from_str(key_id).map_err(|_| exceptions::PyValueError::new_err("invalid key id"))?;
     let value = Value::<N>::from_bytes_le(value).map_err(|_| exceptions::PyValueError::new_err("invalid value"))?;
-    N::hash_bhp1024(&(key_id, value).to_bits_le())
+    let value_hash =
+        N::hash_bhp1024(&value.to_bits_le()).map_err(|_| exceptions::PyValueError::new_err("invalid value"))?;
+    N::hash_bhp1024(&(key_id, value_hash).to_bits_le())
         .map(|hash| hash.to_string())
         .map_err(|_| exceptions::PyValueError::new_err("invalid value id"))
 }

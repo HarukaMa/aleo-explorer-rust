@@ -9,13 +9,21 @@ pyo3 = { version = "0.20.0", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.4"
 
-snarkvm-algorithms = "0.15.4"
-snarkvm-curves = "0.15.4"
-snarkvm-console-account = "0.15.4"
-snarkvm-console-network = "0.15.4"
-snarkvm-console-program = "0.15.4"
-snarkvm-synthesizer-program = "0.15.4"
-snarkvm-utilities = "0.15.4"
+snarkvm-algorithms = { git = "https://github.com/AleoHQ/snarkVM.git", branch = "staging" }
+snarkvm-curves = { git = "https://github.com/AleoHQ/snarkVM.git", branch = "staging" }
+snarkvm-console-account = { git = "https://github.com/AleoHQ/snarkVM.git", branch = "staging" }
+snarkvm-console-network = { git = "https://github.com/AleoHQ/snarkVM.git", branch = "staging" }
+snarkvm-console-program = { git = "https://github.com/AleoHQ/snarkVM.git", branch = "staging" }
+snarkvm-synthesizer-program = { git = "https://github.com/AleoHQ/snarkVM.git", branch = "staging" }
+snarkvm-utilities = { git = "https://github.com/AleoHQ/snarkVM.git", branch = "staging" }
+
+#snarkvm-algorithms = "0.15.4"
+#snarkvm-curves = "0.15.4"
+#snarkvm-console-account = "0.15.4"
+#snarkvm-console-network = "0.15.4"
+#snarkvm-console-program = "0.15.4"
+#snarkvm-synthesizer-program = "0.15.4"
+#snarkvm-utilities = "0.15.4"
 
 leo-compiler = "1.9.3"
 leo-errors = "1.9.3"
