@@ -6,7 +6,7 @@ use leo_errors::emitter::Handler;
 use leo_span::symbol::create_session_if_not_set_then;
 use pyo3::{exceptions, prelude::*, types::PyBytes};
 use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
-use snarkvm_console_account::{ComputeKey, Environment, PrivateKey, Signature};
+use snarkvm_console_account::{Environment, PrivateKey, Signature};
 use snarkvm_console_network::{
     prelude::{FromBytes, Pow, ToBytes},
     Testnet3,
@@ -639,4 +639,14 @@ pub fn serialize_g1affine(py: Python, x: &[u8], y: &[u8], infinity: bool) -> PyR
         .serialize_compressed(&mut bytes)
         .map_err(|e| exceptions::PyValueError::new_err(format!("serialization failed: {e}")))?;
     Ok(PyBytes::new(py, &bytes).into())
+}
+
+#[pyfunction]
+pub fn program_id_to_address(program_id: &str) -> PyResult<String> {
+    let program_id =
+        ProgramID::<N>::from_str(program_id).map_err(|_| exceptions::PyValueError::new_err("invalid program id"))?;
+    Ok(program_id
+        .to_address()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to convert to address: {e}")))?
+        .to_string())
 }
