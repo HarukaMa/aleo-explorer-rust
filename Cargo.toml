@@ -1,5 +1,5 @@
 [package]
-name = "aleo-python"
+name = "aleo-explorer-rust"
 version = "0.10.0-beta.2"
 edition = "2021"
 
@@ -32,7 +32,7 @@ pyo3-build-config = "0.20.0"
 
 [lib]
 crate-type = ["cdylib"]
-name = "aleo"
+name = "aleo_explorer_rust"
 
 [profile.dev]
 opt-level = 1

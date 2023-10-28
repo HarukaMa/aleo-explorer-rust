@@ -4,7 +4,7 @@ use method::*;
 use pyo3::prelude::*;
 
 #[pymodule]
-#[pyo3(name = "aleo")]
+#[pyo3(name = "aleo_explorer_rust")]
 fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sign_nonce, m)?)?;
     m.add_function(wrap_pyfunction!(bech32_decode, m)?)?;
