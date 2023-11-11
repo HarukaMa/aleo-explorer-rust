@@ -1,6 +1,6 @@
 [package]
 name = "aleo-explorer-rust"
-version = "0.10.0-beta.2"
+version = "0.10.0"
 edition = "2021"
 
 [dependencies]
@@ -9,17 +9,17 @@ pyo3 = { version = "0.20.0", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.4"
 
-snarkvm-algorithms = "0.16.6"
-snarkvm-curves = "0.16.6"
-snarkvm-console-account = "0.16.6"
-snarkvm-console-network = "0.16.6"
-snarkvm-console-program = "0.16.6"
-snarkvm-synthesizer-program = "0.16.6"
-snarkvm-utilities = "0.16.6"
+snarkvm-algorithms = "0.16.8"
+snarkvm-curves = "0.16.8"
+snarkvm-console-account = "0.16.8"
+snarkvm-console-network = "0.16.8"
+snarkvm-console-program = "0.16.8"
+snarkvm-synthesizer-program = "0.16.8"
+snarkvm-utilities = "0.16.8"
 
-leo-compiler = "1.10.0"
-leo-errors = "1.10.0"
-leo-span = "1.10.0"
+leo-compiler = { git = "https://github.com/AleoHQ/leo", rev = "1766c45ce10bd652e7847b645d66ab9105694800" }
+leo-errors = { git = "https://github.com/AleoHQ/leo", rev = "1766c45ce10bd652e7847b645d66ab9105694800" }
+leo-span = { git = "https://github.com/AleoHQ/leo", rev = "1766c45ce10bd652e7847b645d66ab9105694800" }
 
 anyhow = "1.0.75"
 rand = "0.8.5"
