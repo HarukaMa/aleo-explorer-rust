@@ -258,8 +258,32 @@ pub fn hash_ops(py: Python, input: &[u8], type_: &str, destination_type: ExLiter
                 "bhp512" => N::hash_to_group_bhp512(&value_bits),
                 "bhp768" => N::hash_to_group_bhp768(&value_bits),
                 "bhp1024" => N::hash_to_group_bhp1024(&value_bits),
+                "keccak256" => match N::hash_keccak256(&value_bits) {
+                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Err(e) => Err(e),
+                },
+                "keccak384" => match N::hash_keccak384(&value_bits) {
+                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Err(e) => Err(e),
+                },
+                "keccak512" => match N::hash_keccak512(&value_bits) {
+                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Err(e) => Err(e),
+                },
                 "ped64" => N::hash_to_group_ped64(&value_bits),
                 "ped128" => N::hash_to_group_ped128(&value_bits),
+                "sha3_256" => match N::hash_sha3_256(&value_bits) {
+                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Err(e) => Err(e),
+                },
+                "sha3_384" => match N::hash_sha3_384(&value_bits) {
+                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Err(e) => Err(e),
+                },
+                "sha3_512" => match N::hash_sha3_512(&value_bits) {
+                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Err(e) => Err(e),
+                },
                 _ => return Err(exceptions::PyValueError::new_err(format!("invalid hash type: {type_}"))),
             }
             .map_err(|e| exceptions::PyAssertionError::new_err(format!("failed to hash: {e}")))?,
