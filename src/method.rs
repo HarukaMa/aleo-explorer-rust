@@ -263,11 +263,11 @@ pub fn hash_ops(py: Python, input: &[u8], type_: &str, destination_type: ExLiter
                     Err(e) => Err(e),
                 },
                 "keccak384" => match N::hash_keccak384(&value_bits) {
-                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Ok(hash) => N::hash_to_group_bhp512(&hash),
                     Err(e) => Err(e),
                 },
                 "keccak512" => match N::hash_keccak512(&value_bits) {
-                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Ok(hash) => N::hash_to_group_bhp512(&hash),
                     Err(e) => Err(e),
                 },
                 "ped64" => N::hash_to_group_ped64(&value_bits),
@@ -277,11 +277,11 @@ pub fn hash_ops(py: Python, input: &[u8], type_: &str, destination_type: ExLiter
                     Err(e) => Err(e),
                 },
                 "sha3_384" => match N::hash_sha3_384(&value_bits) {
-                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Ok(hash) => N::hash_to_group_bhp512(&hash),
                     Err(e) => Err(e),
                 },
                 "sha3_512" => match N::hash_sha3_512(&value_bits) {
-                    Ok(hash) => N::hash_to_group_bhp256(&hash),
+                    Ok(hash) => N::hash_to_group_bhp512(&hash),
                     Err(e) => Err(e),
                 },
                 _ => return Err(exceptions::PyValueError::new_err(format!("invalid hash type: {type_}"))),
