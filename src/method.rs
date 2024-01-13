@@ -28,6 +28,7 @@ use snarkvm_console_program::{
     Scalar,
     Square,
     SquareRoot,
+    StringType,
     ToFields,
     Value,
     I128,
@@ -673,4 +674,53 @@ pub fn program_id_to_address(program_id: &str) -> PyResult<String> {
         .to_address()
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to convert to address: {e}")))?
         .to_string())
+}
+
+#[pyfunction]
+pub fn cast(
+    py: Python,
+    input: &str,
+    input_type: ExLiteralType,
+    destination_type: ExLiteralType,
+    lossy: bool,
+) -> PyResult<PyObject> {
+    let cast_function = match lossy {
+        true => Literal::<N>::cast_lossy,
+        false => Literal::<N>::cast,
+    };
+    let literal_type = input_type
+        .try_into()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input type: {e}")))?;
+    let literal = match literal_type {
+        LiteralType::Address => Address::<N>::from_str(input).and_then(|address| Ok(Literal::Address(address))),
+        LiteralType::Boolean => Boolean::from_str(input).and_then(|boolean| Ok(Literal::Boolean(boolean))),
+        LiteralType::Field => Field::<N>::from_str(input).and_then(|field| Ok(Literal::Field(field))),
+        LiteralType::Group => Group::<N>::from_str(input).and_then(|group| Ok(Literal::Group(group))),
+        LiteralType::I8 => I8::from_str(input).and_then(|i8| Ok(Literal::I8(i8))),
+        LiteralType::I16 => I16::from_str(input).and_then(|i16| Ok(Literal::I16(i16))),
+        LiteralType::I32 => I32::from_str(input).and_then(|i32| Ok(Literal::I32(i32))),
+        LiteralType::I64 => I64::from_str(input).and_then(|i64| Ok(Literal::I64(i64))),
+        LiteralType::I128 => I128::from_str(input).and_then(|i128| Ok(Literal::I128(i128))),
+        LiteralType::U8 => U8::from_str(input).and_then(|u8| Ok(Literal::U8(u8))),
+        LiteralType::U16 => U16::from_str(input).and_then(|u16| Ok(Literal::U16(u16))),
+        LiteralType::U32 => U32::from_str(input).and_then(|u32| Ok(Literal::U32(u32))),
+        LiteralType::U64 => U64::from_str(input).and_then(|u64| Ok(Literal::U64(u64))),
+        LiteralType::U128 => U128::from_str(input).and_then(|u128| Ok(Literal::U128(u128))),
+        LiteralType::Scalar => Scalar::<N>::from_str(input).and_then(|scalar| Ok(Literal::Scalar(scalar))),
+        LiteralType::Signature => {
+            Signature::<N>::from_str(input).and_then(|signature| Ok(Literal::Signature(Box::from(signature))))
+        }
+        LiteralType::String => StringType::from_str(input).and_then(|string| Ok(Literal::String(string))),
+    }
+    .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
+    let result = cast_function(
+        &literal,
+        destination_type
+            .try_into()
+            .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
+    )
+    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
+    let result = literal_to_bytes(result)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
+    Ok(PyBytes::new(py, &result).into())
 }

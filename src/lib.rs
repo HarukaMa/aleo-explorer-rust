@@ -16,13 +16,9 @@ fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_program, m)?)?;
     m.add_function(wrap_pyfunction!(hash_ops, m)?)?;
     m.add_function(wrap_pyfunction!(commit_ops, m)?)?;
-    m.add_function(wrap_pyfunction!(address_cast, m)?)?;
     m.add_function(wrap_pyfunction!(field_ops, m)?)?;
-    m.add_function(wrap_pyfunction!(field_cast, m)?)?;
     m.add_function(wrap_pyfunction!(group_ops, m)?)?;
-    m.add_function(wrap_pyfunction!(group_cast, m)?)?;
     m.add_function(wrap_pyfunction!(scalar_ops, m)?)?;
-    m.add_function(wrap_pyfunction!(scalar_cast, m)?)?;
     m.add_function(wrap_pyfunction!(finalize_random_seed, m)?)?;
     m.add_function(wrap_pyfunction!(chacha_random_seed, m)?)?;
     m.add_function(wrap_pyfunction!(chacha_random_value, m)?)?;
@@ -30,5 +26,6 @@ fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(deserialize_g1affine, m)?)?;
     m.add_function(wrap_pyfunction!(serialize_g1affine, m)?)?;
     m.add_function(wrap_pyfunction!(program_id_to_address, m)?)?;
+    m.add_function(wrap_pyfunction!(cast, m)?)?;
     Ok(())
 }
