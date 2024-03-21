@@ -1,6 +1,6 @@
 use std::{ops::Neg, str::FromStr};
 
-use bech32::{FromBase32, ToBase32, Variant};
+use bech32::{primitives::decode::CheckedHrpstring, Checksum};
 use leo_compiler::Compiler;
 use leo_errors::emitter::Handler;
 use leo_span::symbol::create_session_if_not_set_then;
@@ -64,17 +64,34 @@ pub fn sign_nonce(py: Python, private_key: &str, nonce: &[u8]) -> PyResult<PyObj
     Ok(PyBytes::new(py, &result).into())
 }
 
+pub enum Bech32mUnlimited {}
+
+impl Checksum for Bech32mUnlimited {
+    type MidstateRepr = u32;
+
+    const CHECKSUM_LENGTH: usize = 6;
+    const CODE_LENGTH: usize = usize::MAX;
+    const GENERATOR_SH: [Self::MidstateRepr; 5] = [0x3b6a_57b2, 0x2650_8e6d, 0x1ea1_19fa, 0x3d42_33dd, 0x2a14_62b3];
+    const TARGET_RESIDUE: Self::MidstateRepr = 0x2bc830a3;
+}
+
 #[pyfunction]
 pub fn bech32_encode(hrp: &str, bytes: &[u8]) -> PyResult<String> {
-    bech32::encode(hrp, bytes.to_base32(), Variant::Bech32m)
-        .map_err(|err| exceptions::PyValueError::new_err(format!("unable to encode bech32: {}", err.to_string())))
+    bech32::encode::<Bech32mUnlimited>(
+        bech32::Hrp::parse(hrp).map_err(|e| exceptions::PyValueError::new_err(format!("invalid hrp: {e}")))?,
+        bytes,
+    )
+    .map_err(|err| exceptions::PyValueError::new_err(format!("unable to encode bech32: {}", err.to_string())))
 }
 
 #[pyfunction]
 pub fn bech32_decode(py: Python, data: &str) -> PyResult<(String, PyObject)> {
-    let (hrp, data, _) = bech32::decode(data)
+    let p = CheckedHrpstring::new::<Bech32mUnlimited>(data)
         .map_err(|err| exceptions::PyValueError::new_err(format!("unable to decode bech32: {}", err.to_string())))?;
-    Ok((hrp, PyBytes::new(py, &Vec::<u8>::from_base32(&data).unwrap()).into()))
+    Ok((
+        p.hrp().to_string(),
+        PyBytes::new(py, &p.byte_iter().collect::<Vec<u8>>()).into(),
+    ))
 }
 
 #[pyfunction]
@@ -721,6 +738,25 @@ pub fn cast(
     )
     .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
     let result = literal_to_bytes(result)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
+    Ok(PyBytes::new(py, &result).into())
+}
+
+#[pyfunction]
+pub fn hash_bytes_to_field(py: Python, input: &[u8], type_: &str) -> PyResult<PyObject> {
+    let input = &input.to_bits_le();
+    let output = match type_ {
+        "bhp256" => N::hash_bhp256(input),
+        "bhp512" => N::hash_bhp512(input),
+        "bhp768" => N::hash_bhp768(input),
+        "bhp1024" => N::hash_bhp1024(input),
+        "ped64" => N::hash_ped64(input),
+        "ped128" => N::hash_ped128(input),
+        _ => return Err(exceptions::PyValueError::new_err("invalid hash type")),
+    }
+    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to hash: {e}")))?;
+    let result = output
+        .to_bytes_le()
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new(py, &result).into())
 }

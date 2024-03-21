@@ -1,6 +1,6 @@
 [package]
 name = "aleo-explorer-rust"
-version = "0.11.0"
+version = "0.12.0"
 edition = "2021"
 
 [dependencies]
@@ -9,23 +9,23 @@ pyo3 = { version = "0.20.0", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.4"
 
-snarkvm-algorithms = "0.16.15"
-snarkvm-curves = "0.16.15"
-snarkvm-console-account = "0.16.15"
-snarkvm-console-network = "0.16.15"
-snarkvm-console-program = "0.16.15"
-snarkvm-synthesizer-program = "0.16.15"
-snarkvm-utilities = "0.16.15"
+snarkvm-algorithms = "0.16.19"
+snarkvm-curves = "0.16.19"
+snarkvm-console-account = "0.16.19"
+snarkvm-console-network = "0.16.19"
+snarkvm-console-program = "0.16.19"
+snarkvm-synthesizer-program = "0.16.19"
+snarkvm-utilities = "0.16.19"
 
 leo-compiler = { git = "https://github.com/AleoHQ/leo", rev = "46d539a0b6e05d4104c8c9c8b53900d00a519078" }
 leo-errors = { git = "https://github.com/AleoHQ/leo", rev = "46d539a0b6e05d4104c8c9c8b53900d00a519078" }
 leo-span = { git = "https://github.com/AleoHQ/leo", rev = "46d539a0b6e05d4104c8c9c8b53900d00a519078" }
 
-anyhow = "1.0.75"
+anyhow = "1.0.81"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
-bech32 = "0.9.1"
-tempfile = "3.8.0"
+bech32 = "0.11.0"
+tempfile = "3.10.1"
 
 [build-dependencies]
 pyo3-build-config = "0.20.0"
