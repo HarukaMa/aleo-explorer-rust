@@ -9,7 +9,7 @@ use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
 use snarkvm_console_account::{Environment, PrivateKey, Signature};
 use snarkvm_console_network::{
     prelude::{FromBytes, Pow, ToBytes},
-    Testnet3,
+    MainnetV0,
     ToBits,
 };
 use snarkvm_console_program::{
@@ -48,7 +48,7 @@ use snarkvm_utilities::{CanonicalDeserialize, CanonicalSerialize, ToBits as UToB
 
 use crate::class::*;
 
-type N = Testnet3;
+type N = MainnetV0;
 
 #[pyfunction]
 pub fn sign_nonce(py: Python, private_key: &str, nonce: &[u8]) -> PyResult<PyObject> {
