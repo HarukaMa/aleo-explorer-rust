@@ -653,37 +653,6 @@ pub fn signature_to_address(signature: &str) -> PyResult<String> {
 }
 
 #[pyfunction]
-pub fn deserialize_g1affine(py: Python, data: &[u8]) -> PyResult<(PyObject, PyObject, bool)> {
-    let affine = G1Affine::deserialize_compressed(data)
-        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid data: {e}")))?;
-    let x = affine
-        .x
-        .to_bytes_le()
-        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid x: {e}")))?;
-    let y = affine
-        .y
-        .to_bytes_le()
-        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid y: {e}")))?;
-    Ok((
-        PyBytes::new(py, &x).into(),
-        PyBytes::new(py, &y).into(),
-        affine.infinity,
-    ))
-}
-
-#[pyfunction]
-pub fn serialize_g1affine(py: Python, x: &[u8], y: &[u8], infinity: bool) -> PyResult<PyObject> {
-    let x = Fq::from_bytes_le(x).map_err(|e| exceptions::PyValueError::new_err(format!("invalid x: {e}")))?;
-    let y = Fq::from_bytes_le(y).map_err(|e| exceptions::PyValueError::new_err(format!("invalid y: {e}")))?;
-    let affine = G1Affine::new(x, y, infinity);
-    let mut bytes = Vec::<u8>::new();
-    affine
-        .serialize_compressed(&mut bytes)
-        .map_err(|e| exceptions::PyValueError::new_err(format!("serialization failed: {e}")))?;
-    Ok(PyBytes::new(py, &bytes).into())
-}
-
-#[pyfunction]
 pub fn program_id_to_address(program_id: &str) -> PyResult<String> {
     let program_id =
         ProgramID::<N>::from_str(program_id).map_err(|_| exceptions::PyValueError::new_err("invalid program id"))?;
