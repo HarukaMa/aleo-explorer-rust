@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 
-pyo3 = { version = "0.20.0", features = ["extension-module", "num-bigint"] }
+pyo3 = { version = "0.21.2", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.4"
 
@@ -17,9 +17,13 @@ snarkvm-console-program = { git = "https://github.com/AleoHQ/snarkVM", branch = 
 snarkvm-synthesizer-program = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainnet-staging" }
 snarkvm-utilities = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainnet-staging" }
 
-leo-compiler = { git = "https://github.com/AleoHQ/leo", rev = "46d539a0b6e05d4104c8c9c8b53900d00a519078" }
-leo-errors = { git = "https://github.com/AleoHQ/leo", rev = "46d539a0b6e05d4104c8c9c8b53900d00a519078" }
-leo-span = { git = "https://github.com/AleoHQ/leo", rev = "46d539a0b6e05d4104c8c9c8b53900d00a519078" }
+#leo-compiler = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
+#leo-errors = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
+#leo-span = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
+
+leo-compiler = "1.11.0"
+leo-errors = "1.11.0"
+leo-span = "1.11.0"
 
 anyhow = "1.0.81"
 rand = "0.8.5"
@@ -28,7 +32,7 @@ bech32 = "0.11.0"
 tempfile = "3.10.1"
 
 [build-dependencies]
-pyo3-build-config = "0.20.0"
+pyo3-build-config = "0.21.2"
 
 [lib]
 crate-type = ["cdylib"]
