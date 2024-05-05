@@ -19,7 +19,7 @@ def get_key_id(program_id: str, mapping_name: str, key: bytes) -> str: ...
 def get_value_id(key_id: str, value: bytes) -> str: ...
 
 
-def compile_program(program: str, program_name: str, imports: list[tuple[str, str]]) -> bytes: ...
+def compile_program(program: str, program_name: str, imports: list[str]) -> bytes: ...
 
 
 def parse_program(program: str) -> bytes: ...
@@ -41,28 +41,28 @@ def scalar_ops(a: Any, b: Any, op: str) -> bytes: ...
 
 
 def finalize_random_seed(
-        block_round: int,
-        block_height: int,
-        block_cumulative_weight: int,
-        block_cumulative_proof_target: int,
-        previous_block_hash: bytes,
+    block_round: int,
+    block_height: int,
+    block_cumulative_weight: int,
+    block_cumulative_proof_target: int,
+    previous_block_hash: bytes,
 ) -> bytes: ...
 
 
 def chacha_random_seed(
-        state_seed: bytes,
-        transition_id: bytes,
-        program_id: bytes,
-        function_name: bytes,
-        destination_locator: int,
-        destination_type_id: int,
-        additional_seeds: list[bytes],
+    state_seed: bytes,
+    transition_id: bytes,
+    program_id: bytes,
+    function_name: bytes,
+    destination_locator: int,
+    destination_type_id: int,
+    additional_seeds: list[bytes],
 ) -> bytes: ...
 
 
 def chacha_random_value(
-        random_seed: bytes,
-        destination_type: Any,
+    random_seed: bytes,
+    destination_type: Any,
 ) -> bytes: ...
 
 

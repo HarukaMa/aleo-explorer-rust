@@ -1,9 +1,12 @@
 use std::{ops::Neg, str::FromStr};
 
 use bech32::{primitives::decode::CheckedHrpstring, Checksum};
+use indexmap::IndexMap;
+use leo_ast::Stub;
 use leo_compiler::Compiler;
+use leo_disassembler::disassemble_from_str;
 use leo_errors::emitter::Handler;
-use leo_span::symbol::create_session_if_not_set_then;
+use leo_span::{symbol::create_session_if_not_set_then, Symbol};
 use pyo3::{exceptions, prelude::*, types::PyBytes};
 use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
 use snarkvm_console_account::{Environment, PrivateKey, Signature};
@@ -42,7 +45,6 @@ use snarkvm_console_program::{
     U64,
     U8,
 };
-use snarkvm_curves::bls12_377::{Fq, G1Affine};
 use snarkvm_synthesizer_program::Program;
 use snarkvm_utilities::{CanonicalDeserialize, CanonicalSerialize, ToBits as UToBits, Uniform};
 
@@ -61,7 +63,7 @@ pub fn sign_nonce(py: Python, private_key: &str, nonce: &[u8]) -> PyResult<PyObj
                 .map_err(|_| exceptions::PyValueError::new_err("invalid signature"))
         })
         .map_err(|_| exceptions::PyValueError::new_err("invalid signature"))??;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 pub enum Bech32mUnlimited {}
@@ -90,7 +92,7 @@ pub fn bech32_decode(py: Python, data: &str) -> PyResult<(String, PyObject)> {
         .map_err(|err| exceptions::PyValueError::new_err(format!("unable to decode bech32: {}", err.to_string())))?;
     Ok((
         p.hrp().to_string(),
-        PyBytes::new(py, &p.byte_iter().collect::<Vec<u8>>()).into(),
+        PyBytes::new_bound(py, &p.byte_iter().collect::<Vec<u8>>()).into(),
     ))
 }
 
@@ -148,12 +150,7 @@ impl Drop for TempChdir {
 }
 
 #[pyfunction]
-pub fn compile_program(
-    py: Python,
-    program: &str,
-    program_name: &str,
-    imports: Vec<(&str, &str)>,
-) -> PyResult<PyObject> {
+pub fn compile_program(py: Python, program: &str, program_name: &str, imports: Vec<String>) -> PyResult<PyObject> {
     create_session_if_not_set_then(|_| {
         // disable output color
         std::env::set_var("LEO_TESTFRAMEWORK", "1");
@@ -166,11 +163,6 @@ pub fn compile_program(
             exceptions::PyRuntimeError::new_err(format!("unable to initialize directory structure: {e}"))
         })?;
 
-        let import_dir = src_dir.join("imports");
-        std::fs::create_dir(import_dir.clone()).map_err(|e| {
-            exceptions::PyRuntimeError::new_err(format!("unable to initialize directory structure: {e}"))
-        })?;
-
         let _tempcd = TempChdir::chdir(&src_dir)
             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to change directory: {e}")))?;
 
@@ -178,20 +170,13 @@ pub fn compile_program(
             exceptions::PyRuntimeError::new_err(format!("unable to write program to temp directory: {e}"))
         })?;
 
-        for (name, program) in imports {
-            if name == "credits" {
-                std::fs::write(
-                    import_dir.join(format!("{name}.leo")),
-                    include_bytes!("../res/credits.leo"),
-                )
-                .map_err(|e| {
-                    exceptions::PyRuntimeError::new_err(format!("unable to write program to temp directory: {e}"))
-                })?;
-            } else {
-                std::fs::write(import_dir.join(format!("{name}.leo")), program).map_err(|e| {
-                    exceptions::PyRuntimeError::new_err(format!("unable to write program to temp directory: {e}"))
-                })?;
-            }
+        let mut import_stubs: IndexMap<Symbol, Stub> = IndexMap::new();
+
+        for program in imports {
+            let stub = disassemble_from_str(&program).map_err(|e| {
+                exceptions::PyRuntimeError::new_err(format!("unable to disassemble imported program: {e}"))
+            })?;
+            import_stubs.insert(Symbol::intern(&stub.stub_id.name.to_string()), stub);
         }
 
         let build_dir = temp_dir.path().join("build");
@@ -204,8 +189,9 @@ pub fn compile_program(
             src_dir.join(format!("{program_name}.leo")),
             build_dir,
             None,
+            import_stubs,
         );
-        let (_, instructions) = compiler
+        let instructions = compiler
             .compile()
             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to compile program: {e}")))?;
 
@@ -214,7 +200,7 @@ pub fn compile_program(
         let result = program
             .to_bytes_le()
             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to serialize program: {e}")))?;
-        Ok(PyBytes::new(py, &result).into())
+        Ok(PyBytes::new_bound(py, &result).into())
     })
 }
 
@@ -225,7 +211,7 @@ pub fn parse_program(py: Python, program: &str) -> PyResult<PyObject> {
     let result = program
         .to_bytes_le()
         .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to serialize program: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 pub fn literal_to_bytes(literal: Literal<N>) -> anyhow::Result<Vec<u8>> {
@@ -312,7 +298,7 @@ pub fn hash_ops(py: Python, input: &[u8], type_: &str, destination_type: ExLiter
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast to destination type: {e}")))?;
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -348,7 +334,7 @@ pub fn commit_ops(
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast to destination type: {e}")))?;
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -369,7 +355,7 @@ pub fn address_cast(py: Python, input: &str, destination_type: ExLiteralType, lo
     .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast to destination type: {e}")))?;
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -405,7 +391,7 @@ pub fn field_ops(py: Python, a: ExField, b: ExField, op: &str) -> PyResult<PyObj
     };
     let result =
         literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -427,7 +413,7 @@ pub fn field_cast(py: Python, input: ExField, destination_type: ExLiteralType, l
     .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
     let result = literal_to_bytes(result)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -463,7 +449,7 @@ pub fn group_ops(py: Python, a: ExGroup, b: PyObject, op: &str) -> PyResult<PyOb
     };
     let result =
         literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -485,7 +471,7 @@ pub fn group_cast(py: Python, input: ExGroup, destination_type: ExLiteralType, l
     .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
     let result = literal_to_bytes(result)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -523,7 +509,7 @@ pub fn scalar_ops(py: Python, a: ExScalar, b: PyObject, op: &str) -> PyResult<Py
     };
     let result =
         literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -545,7 +531,7 @@ pub fn scalar_cast(py: Python, input: ExScalar, destination_type: ExLiteralType,
     .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
     let result = literal_to_bytes(result)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -569,7 +555,7 @@ pub fn finalize_random_seed(
         .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))?
         .to_bytes_le()
         .map_err(|e| exceptions::PyValueError::new_err(format!("serialization failed: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -581,7 +567,7 @@ pub fn chacha_random_seed(
     function_name: &[u8],
     destination_locator: u64,
     destination_type_id: u8,
-    additional_seeds: Vec<&[u8]>,
+    additional_seeds: Vec<Vec<u8>>,
 ) -> PyResult<PyObject> {
     let transition_id = <N as Network>::TransitionID::from_bytes_le(transition_id)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid transition id: {e}")))?;
@@ -592,7 +578,7 @@ pub fn chacha_random_seed(
     let mut additional_seeds_value = Vec::with_capacity(2);
     for seed in additional_seeds {
         additional_seeds_value.push(
-            Value::<N>::from_bytes_le(seed)
+            Value::<N>::from_bytes_le(&seed)
                 .map_err(|e| exceptions::PyValueError::new_err(format!("invalid additional seeds: {e}")))?,
         )
     }
@@ -610,7 +596,7 @@ pub fn chacha_random_seed(
         .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))?
         .to_bytes_le()
         .map_err(|e| exceptions::PyValueError::new_err(format!("serialization failed: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 // I'm not aware of any completely equivalent implementation of chacha20 rng in Python, so we
@@ -642,7 +628,7 @@ pub fn chacha_random_value(py: Python, random_seed: &[u8], destination_type: ExL
     };
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -708,7 +694,7 @@ pub fn cast(
     .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
     let result = literal_to_bytes(result)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }
 
 #[pyfunction]
@@ -727,5 +713,5 @@ pub fn hash_bytes_to_field(py: Python, input: &[u8], type_: &str) -> PyResult<Py
     let result = output
         .to_bytes_le()
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new(py, &result).into())
+    Ok(PyBytes::new_bound(py, &result).into())
 }

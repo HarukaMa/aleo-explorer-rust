@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 
 #[pymodule]
 #[pyo3(name = "aleo_explorer_rust")]
-fn module(_py: Python, m: &PyModule) -> PyResult<()> {
+fn extension(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sign_nonce, m)?)?;
     m.add_function(wrap_pyfunction!(bech32_decode, m)?)?;
     m.add_function(wrap_pyfunction!(bech32_encode, m)?)?;
@@ -23,8 +23,6 @@ fn module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(chacha_random_seed, m)?)?;
     m.add_function(wrap_pyfunction!(chacha_random_value, m)?)?;
     m.add_function(wrap_pyfunction!(signature_to_address, m)?)?;
-    m.add_function(wrap_pyfunction!(deserialize_g1affine, m)?)?;
-    m.add_function(wrap_pyfunction!(serialize_g1affine, m)?)?;
     m.add_function(wrap_pyfunction!(program_id_to_address, m)?)?;
     m.add_function(wrap_pyfunction!(cast, m)?)?;
     m.add_function(wrap_pyfunction!(hash_bytes_to_field, m)?)?;

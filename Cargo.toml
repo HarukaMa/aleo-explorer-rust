@@ -24,12 +24,15 @@ snarkvm-utilities = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainn
 leo-compiler = "1.11.0"
 leo-errors = "1.11.0"
 leo-span = "1.11.0"
+leo-disassembler = "1.11.0"
+leo-ast = "1.11.0"
 
 anyhow = "1.0.81"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 bech32 = "0.11.0"
 tempfile = "3.10.1"
+indexmap = "1.9.3"
 
 [build-dependencies]
 pyo3-build-config = "0.21.2"
