@@ -13,6 +13,7 @@ use snarkvm_console_account::{Environment, PrivateKey, Signature};
 use snarkvm_console_network::{
     prelude::{FromBytes, Pow, ToBytes},
     MainnetV0,
+    TestnetV0,
     ToBits,
 };
 use snarkvm_console_program::{
@@ -45,12 +46,14 @@ use snarkvm_console_program::{
     U64,
     U8,
 };
+use snarkvm_ledger_puzzle::{Puzzle, Solution, SolutionID};
+use snarkvm_ledger_puzzle_epoch::MerklePuzzle;
 use snarkvm_synthesizer_program::Program;
 use snarkvm_utilities::{CanonicalDeserialize, CanonicalSerialize, ToBits as UToBits, Uniform};
 
 use crate::class::*;
 
-type N = MainnetV0;
+type N = TestnetV0;
 
 #[pyfunction]
 pub fn sign_nonce(py: Python, private_key: &str, nonce: &[u8]) -> PyResult<PyObject> {
@@ -338,27 +341,6 @@ pub fn commit_ops(
 }
 
 #[pyfunction]
-pub fn address_cast(py: Python, input: &str, destination_type: ExLiteralType, lossy: bool) -> PyResult<PyObject> {
-    let input =
-        Address::<N>::from_str(input).map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
-    let cast_function = match lossy {
-        true => Literal::<N>::cast_lossy,
-        false => Literal::<N>::cast,
-    };
-    let literal = Literal::Address(input);
-    let output = cast_function(
-        &literal,
-        destination_type
-            .try_into()
-            .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
-    )
-    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast to destination type: {e}")))?;
-    let result = literal_to_bytes(output)
-        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
-}
-
-#[pyfunction]
 pub fn field_ops(py: Python, a: ExField, b: ExField, op: &str) -> PyResult<PyObject> {
     let a: Field<N> = a
         .try_into()
@@ -391,28 +373,6 @@ pub fn field_ops(py: Python, a: ExField, b: ExField, op: &str) -> PyResult<PyObj
     };
     let result =
         literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
-}
-
-#[pyfunction]
-pub fn field_cast(py: Python, input: ExField, destination_type: ExLiteralType, lossy: bool) -> PyResult<PyObject> {
-    let field = input
-        .try_into()
-        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
-    let cast_function = match lossy {
-        true => Literal::<N>::cast_lossy,
-        false => Literal::<N>::cast,
-    };
-    let literal = Literal::Field(field);
-    let result = cast_function(
-        &literal,
-        destination_type
-            .try_into()
-            .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
-    )
-    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
-    let result = literal_to_bytes(result)
-        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new_bound(py, &result).into())
 }
 
@@ -453,28 +413,6 @@ pub fn group_ops(py: Python, a: ExGroup, b: PyObject, op: &str) -> PyResult<PyOb
 }
 
 #[pyfunction]
-pub fn group_cast(py: Python, input: ExGroup, destination_type: ExLiteralType, lossy: bool) -> PyResult<PyObject> {
-    let group = input
-        .try_into()
-        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
-    let cast_function = match lossy {
-        true => Literal::<N>::cast_lossy,
-        false => Literal::<N>::cast,
-    };
-    let literal = Literal::Group(group);
-    let result = cast_function(
-        &literal,
-        destination_type
-            .try_into()
-            .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
-    )
-    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
-    let result = literal_to_bytes(result)
-        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
-}
-
-#[pyfunction]
 pub fn scalar_ops(py: Python, a: ExScalar, b: PyObject, op: &str) -> PyResult<PyObject> {
     let a: Scalar<N> = a
         .try_into()
@@ -509,28 +447,6 @@ pub fn scalar_ops(py: Python, a: ExScalar, b: PyObject, op: &str) -> PyResult<Py
     };
     let result =
         literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
-}
-
-#[pyfunction]
-pub fn scalar_cast(py: Python, input: ExScalar, destination_type: ExLiteralType, lossy: bool) -> PyResult<PyObject> {
-    let scalar = input
-        .try_into()
-        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
-    let cast_function = match lossy {
-        true => Literal::<N>::cast_lossy,
-        false => Literal::<N>::cast,
-    };
-    let literal = Literal::Scalar(scalar);
-    let result = cast_function(
-        &literal,
-        destination_type
-            .try_into()
-            .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
-    )
-    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
-    let result = literal_to_bytes(result)
-        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new_bound(py, &result).into())
 }
 
@@ -714,4 +630,30 @@ pub fn hash_bytes_to_field(py: Python, input: &[u8], type_: &str) -> PyResult<Py
         .to_bytes_le()
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new_bound(py, &result).into())
+}
+
+#[pyfunction]
+pub fn solution_to_id(py: Python, epoch_hash: &str, address: &str, counter: u64) -> PyResult<PyObject> {
+    let epoch_hash = <N as Network>::BlockHash::from_str(epoch_hash)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid epoch hash: {e}")))?;
+    let address = Address::<N>::from_str(address)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid address: {e}")))?;
+    let solution_id = SolutionID::<N>::new(epoch_hash, address, counter)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid solution id: {e}")))?;
+    Ok(PyBytes::new_bound(
+        py,
+        &solution_id
+            .to_bytes_le()
+            .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize solution id: {e}")))?,
+    )
+    .into())
+}
+
+#[pyfunction]
+pub fn solution_to_target(solution: &[u8]) -> PyResult<u64> {
+    let solution = Solution::<N>::from_bytes_le(solution)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to parse solution: {e}")))?;
+    Puzzle::new::<MerklePuzzle<N>>()
+        .get_proof_target(&solution)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to get proof target: {e}")))
 }

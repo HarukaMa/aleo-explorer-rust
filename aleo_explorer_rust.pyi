@@ -82,3 +82,9 @@ def cast(input: str, input_type: Any, destination_type: Any, lossy: bool) -> byt
 
 
 def hash_bytes_to_field(input: bytes, hash_type: str) -> bytes: ...
+
+
+def solution_to_id(epoch_hash: str, address: str, counter: int) -> bytes: ...
+
+
+def solution_to_target(solution: bytes) -> int: ...

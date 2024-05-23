@@ -1,6 +1,6 @@
 [package]
 name = "aleo-explorer-rust"
-version = "0.12.0"
+version = "0.13.0"
 edition = "2021"
 
 [dependencies]
@@ -9,25 +9,28 @@ pyo3 = { version = "0.21.2", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.4"
 
-snarkvm-algorithms = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainnet-staging" }
-snarkvm-curves = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainnet-staging" }
-snarkvm-console-account = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainnet-staging" }
-snarkvm-console-network = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainnet-staging" }
-snarkvm-console-program = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainnet-staging" }
-snarkvm-synthesizer-program = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainnet-staging" }
-snarkvm-utilities = { git = "https://github.com/AleoHQ/snarkVM", branch = "mainnet-staging" }
+snarkvm-algorithms = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+snarkvm-curves = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+snarkvm-console-account = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+snarkvm-console-network = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+snarkvm-console-program = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+snarkvm-synthesizer-program = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+snarkvm-utilities = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+snarkvm-ledger-puzzle = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+snarkvm-ledger-puzzle-epoch = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+
 
 #leo-compiler = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
 #leo-errors = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
 #leo-span = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
 
-leo-compiler = "1.11.0"
-leo-errors = "1.11.0"
-leo-span = "1.11.0"
-leo-disassembler = "1.11.0"
-leo-ast = "1.11.0"
+leo-compiler = { git = "https://github.com/AleoHQ/leo", branch = "mainnet" }
+leo-errors = { git = "https://github.com/AleoHQ/leo", branch = "mainnet" }
+leo-span = { git = "https://github.com/AleoHQ/leo", branch = "mainnet" }
+leo-disassembler = { git = "https://github.com/AleoHQ/leo", branch = "mainnet" }
+leo-ast = { git = "https://github.com/AleoHQ/leo", branch = "mainnet" }
 
-anyhow = "1.0.81"
+anyhow = "1.0.82"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 bech32 = "0.11.0"

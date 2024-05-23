@@ -1,10 +1,10 @@
 use num_bigint::BigUint;
 use pyo3::prelude::*;
-use snarkvm_console_network::MainnetV0;
+use snarkvm_console_network::{MainnetV0, TestnetV0};
 use snarkvm_console_program::{Field, Group, LiteralType, Scalar};
 use snarkvm_utilities::FromBytes;
 
-type N = MainnetV0;
+type N = TestnetV0;
 
 #[derive(FromPyObject)]
 pub struct ExLiteralType {
