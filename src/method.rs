@@ -176,7 +176,7 @@ pub fn compile_program(py: Python, program: &str, program_name: &str, imports: V
         let mut import_stubs: IndexMap<Symbol, Stub> = IndexMap::new();
 
         for program in imports {
-            let stub = disassemble_from_str(&program).map_err(|e| {
+            let stub = disassemble_from_str::<N>(&program).map_err(|e| {
                 exceptions::PyRuntimeError::new_err(format!("unable to disassemble imported program: {e}"))
             })?;
             import_stubs.insert(Symbol::intern(&stub.stub_id.name.to_string()), stub);
@@ -185,7 +185,7 @@ pub fn compile_program(py: Python, program: &str, program_name: &str, imports: V
         let build_dir = temp_dir.path().join("build");
 
         let handler = Handler::default();
-        let mut compiler = Compiler::new(
+        let mut compiler = Compiler::<N>::new(
             program_name.to_string(),
             "aleo".to_string(),
             &handler,

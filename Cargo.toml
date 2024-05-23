@@ -9,15 +9,15 @@ pyo3 = { version = "0.21.2", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.4"
 
-snarkvm-algorithms = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
-snarkvm-curves = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
-snarkvm-console-account = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
-snarkvm-console-network = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
-snarkvm-console-program = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
-snarkvm-synthesizer-program = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
-snarkvm-utilities = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
-snarkvm-ledger-puzzle = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
-snarkvm-ledger-puzzle-epoch = { git = "https://github.com/AleoHQ/snarkVM", rev = "da3d78a" }
+snarkvm-algorithms = { git = "https://github.com/AleoNet/snarkVM", rev = "140ff26" }
+snarkvm-curves = { git = "https://github.com/AleoNet/snarkVM", rev = "140ff26" }
+snarkvm-console-account = { git = "https://github.com/AleoNet/snarkVM", rev = "140ff26" }
+snarkvm-console-network = { git = "https://github.com/AleoNet/snarkVM", rev = "140ff26" }
+snarkvm-console-program = { git = "https://github.com/AleoNet/snarkVM", rev = "140ff26" }
+snarkvm-synthesizer-program = { git = "https://github.com/AleoNet/snarkVM", rev = "140ff26" }
+snarkvm-utilities = { git = "https://github.com/AleoNet/snarkVM", rev = "140ff26" }
+snarkvm-ledger-puzzle = { git = "https://github.com/AleoNet/snarkVM", rev = "140ff26" }
+snarkvm-ledger-puzzle-epoch = { git = "https://github.com/AleoNet/snarkVM", rev = "140ff26" }
 
 
 #leo-compiler = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
