@@ -2,11 +2,11 @@ use std::{ops::Neg, str::FromStr};
 
 use bech32::{primitives::decode::CheckedHrpstring, Checksum};
 use indexmap::IndexMap;
-use leo_ast::Stub;
-use leo_compiler::Compiler;
-use leo_disassembler::disassemble_from_str;
-use leo_errors::emitter::Handler;
-use leo_span::{symbol::create_session_if_not_set_then, Symbol};
+// use leo_ast::Stub;
+// use leo_compiler::Compiler;
+// use leo_disassembler::disassemble_from_str;
+// use leo_errors::emitter::Handler;
+// use leo_span::{symbol::create_session_if_not_set_then, Symbol};
 use pyo3::{exceptions, prelude::*, types::PyBytes};
 use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
 use snarkvm_console_account::{Environment, PrivateKey, Signature};
@@ -154,57 +154,60 @@ impl Drop for TempChdir {
 
 #[pyfunction]
 pub fn compile_program(py: Python, program: &str, program_name: &str, imports: Vec<String>) -> PyResult<PyObject> {
-    create_session_if_not_set_then(|_| {
-        // disable output color
-        std::env::set_var("LEO_TESTFRAMEWORK", "1");
-
-        let temp_dir = tempfile::tempdir()
-            .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to create temp dir: {e}")))?;
-
-        let src_dir = temp_dir.path().join("src");
-        std::fs::create_dir(src_dir.clone()).map_err(|e| {
-            exceptions::PyRuntimeError::new_err(format!("unable to initialize directory structure: {e}"))
-        })?;
-
-        let _tempcd = TempChdir::chdir(&src_dir)
-            .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to change directory: {e}")))?;
-
-        std::fs::write(src_dir.join(format!("{program_name}.leo")), program).map_err(|e| {
-            exceptions::PyRuntimeError::new_err(format!("unable to write program to temp directory: {e}"))
-        })?;
-
-        let mut import_stubs: IndexMap<Symbol, Stub> = IndexMap::new();
-
-        for program in imports {
-            let stub = disassemble_from_str::<N>(&program).map_err(|e| {
-                exceptions::PyRuntimeError::new_err(format!("unable to disassemble imported program: {e}"))
-            })?;
-            import_stubs.insert(Symbol::intern(&stub.stub_id.name.to_string()), stub);
-        }
-
-        let build_dir = temp_dir.path().join("build");
-
-        let handler = Handler::default();
-        let mut compiler = Compiler::<N>::new(
-            program_name.to_string(),
-            "aleo".to_string(),
-            &handler,
-            src_dir.join(format!("{program_name}.leo")),
-            build_dir,
-            None,
-            import_stubs,
-        );
-        let instructions = compiler
-            .compile()
-            .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to compile program: {e}")))?;
-
-        let program = Program::<N>::from_str(&instructions)
-            .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to parse program: {e}")))?;
-        let result = program
-            .to_bytes_le()
-            .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to serialize program: {e}")))?;
-        Ok(PyBytes::new_bound(py, &result).into())
-    })
+    Err(exceptions::PyNotImplementedError::new_err(
+        "compile_program is disabled in this version",
+    ))
+    //     create_session_if_not_set_then(|_| {
+    //         // disable output color
+    //         std::env::set_var("LEO_TESTFRAMEWORK", "1");
+    //
+    //         let temp_dir = tempfile::tempdir()
+    //             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to create temp dir: {e}")))?;
+    //
+    //         let src_dir = temp_dir.path().join("src");
+    //         std::fs::create_dir(src_dir.clone()).map_err(|e| {
+    //             exceptions::PyRuntimeError::new_err(format!("unable to initialize directory structure: {e}"))
+    //         })?;
+    //
+    //         let _tempcd = TempChdir::chdir(&src_dir)
+    //             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to change directory: {e}")))?;
+    //
+    //         std::fs::write(src_dir.join(format!("{program_name}.leo")), program).map_err(|e| {
+    //             exceptions::PyRuntimeError::new_err(format!("unable to write program to temp directory: {e}"))
+    //         })?;
+    //
+    //         let mut import_stubs: IndexMap<Symbol, Stub> = IndexMap::new();
+    //
+    //         for program in imports {
+    //             let stub = disassemble_from_str::<N>(&program).map_err(|e| {
+    //                 exceptions::PyRuntimeError::new_err(format!("unable to disassemble imported program: {e}"))
+    //             })?;
+    //             import_stubs.insert(Symbol::intern(&stub.stub_id.name.to_string()), stub);
+    //         }
+    //
+    //         let build_dir = temp_dir.path().join("build");
+    //
+    //         let handler = Handler::default();
+    //         let mut compiler = Compiler::<N>::new(
+    //             program_name.to_string(),
+    //             "aleo".to_string(),
+    //             &handler,
+    //             src_dir.join(format!("{program_name}.leo")),
+    //             build_dir,
+    //             None,
+    //             import_stubs,
+    //         );
+    //         let instructions = compiler
+    //             .compile()
+    //             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to compile program: {e}")))?;
+    //
+    //         let program = Program::<N>::from_str(&instructions)
+    //             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to parse program: {e}")))?;
+    //         let result = program
+    //             .to_bytes_le()
+    //             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to serialize program: {e}")))?;
+    //         Ok(PyBytes::new_bound(py, &result).into())
+    //     })
 }
 
 #[pyfunction]
