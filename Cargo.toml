@@ -1,23 +1,24 @@
 [package]
 name = "aleo-explorer-rust"
-version = "0.13.1"
+version = "0.13.2"
 edition = "2021"
 
 [dependencies]
 
-pyo3 = { version = "0.21.2", features = ["extension-module", "num-bigint"] }
+pyo3 = { version = "0.22.0", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.4"
 
-snarkvm-algorithms = { git = "https://github.com/AleoNet/snarkVM", rev = "fddd8b9" }
-snarkvm-curves = { git = "https://github.com/AleoNet/snarkVM", rev = "fddd8b9" }
-snarkvm-console-account = { git = "https://github.com/AleoNet/snarkVM", rev = "fddd8b9" }
-snarkvm-console-network = { git = "https://github.com/AleoNet/snarkVM", rev = "fddd8b9" }
-snarkvm-console-program = { git = "https://github.com/AleoNet/snarkVM", rev = "fddd8b9" }
-snarkvm-synthesizer-program = { git = "https://github.com/AleoNet/snarkVM", rev = "fddd8b9" }
-snarkvm-utilities = { git = "https://github.com/AleoNet/snarkVM", rev = "fddd8b9" }
-snarkvm-ledger-puzzle = { git = "https://github.com/AleoNet/snarkVM", rev = "fddd8b9" }
-snarkvm-ledger-puzzle-epoch = { git = "https://github.com/AleoNet/snarkVM", rev = "fddd8b9" }
+snarkvm-algorithms = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
+snarkvm-curves = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
+snarkvm-console-account = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
+snarkvm-console-network = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
+snarkvm-console-program = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
+snarkvm-synthesizer-program = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
+snarkvm-utilities = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
+snarkvm-ledger-puzzle = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
+snarkvm-ledger-puzzle-epoch = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
+snarkvm-ledger-block = { git = "https://github.com/AleoNet/snarkVM", rev = "d170a9f7" }
 
 
 #leo-compiler = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
@@ -30,7 +31,7 @@ snarkvm-ledger-puzzle-epoch = { git = "https://github.com/AleoNet/snarkVM", rev 
 #leo-disassembler = { git = "https://github.com/AleoHQ/leo", branch = "mainnet" }
 #leo-ast = { git = "https://github.com/AleoHQ/leo", branch = "mainnet" }
 
-anyhow = "1.0.82"
+anyhow = "1.0.86"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 bech32 = "0.11.0"
@@ -38,7 +39,7 @@ tempfile = "3.10.1"
 indexmap = "1.9.3"
 
 [build-dependencies]
-pyo3-build-config = "0.21.2"
+pyo3-build-config = "0.22.0"
 
 [lib]
 crate-type = ["cdylib"]

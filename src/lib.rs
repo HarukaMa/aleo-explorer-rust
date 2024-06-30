@@ -27,6 +27,6 @@ fn extension(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cast, m)?)?;
     m.add_function(wrap_pyfunction!(hash_bytes_to_field, m)?)?;
     m.add_function(wrap_pyfunction!(solution_to_id, m)?)?;
-    m.add_function(wrap_pyfunction!(solution_to_target, m)?)?;
+    m.add_function(wrap_pyfunction!(rejected_tx_original_id, m)?)?;
     Ok(())
 }

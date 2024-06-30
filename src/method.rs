@@ -46,8 +46,8 @@ use snarkvm_console_program::{
     U64,
     U8,
 };
+use snarkvm_ledger_block::ConfirmedTransaction;
 use snarkvm_ledger_puzzle::{Puzzle, Solution, SolutionID};
-use snarkvm_ledger_puzzle_epoch::MerklePuzzle;
 use snarkvm_synthesizer_program::Program;
 use snarkvm_utilities::{CanonicalDeserialize, CanonicalSerialize, ToBits as UToBits, Uniform};
 
@@ -653,10 +653,11 @@ pub fn solution_to_id(py: Python, epoch_hash: &str, address: &str, counter: u64)
 }
 
 #[pyfunction]
-pub fn solution_to_target(solution: &[u8]) -> PyResult<u64> {
-    let solution = Solution::<N>::from_bytes_le(solution)
-        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to parse solution: {e}")))?;
-    Puzzle::new::<MerklePuzzle<N>>()
-        .get_proof_target(&solution)
-        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to get proof target: {e}")))
+pub fn rejected_tx_original_id(confirmed_transaction: &[u8]) -> PyResult<String> {
+    let confirmed_transaction = ConfirmedTransaction::<N>::from_bytes_le(confirmed_transaction)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to parse confirmed transaction: {e}")))?;
+    Ok(confirmed_transaction
+        .to_unconfirmed_transaction_id()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to get rejected tx original id: {e}")))?
+        .to_string())
 }
