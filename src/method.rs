@@ -1,18 +1,19 @@
 use std::{ops::Neg, str::FromStr};
 
 use bech32::{primitives::decode::CheckedHrpstring, Checksum};
-use indexmap::IndexMap;
+use pyo3::types::PyTuple;
 // use leo_ast::Stub;
 // use leo_compiler::Compiler;
 // use leo_disassembler::disassemble_from_str;
 // use leo_errors::emitter::Handler;
 // use leo_span::{symbol::create_session_if_not_set_then, Symbol};
 use pyo3::{exceptions, prelude::*, types::PyBytes};
-use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
-use snarkvm_console_account::{Environment, PrivateKey, Signature};
+use rand::random;
+use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng, ChaChaRng};
+use snarkvm_circuit_network::AleoTestnetV0;
+use snarkvm_console_account::{PrivateKey, Signature};
 use snarkvm_console_network::{
     prelude::{FromBytes, Pow, ToBytes},
-    MainnetV0,
     TestnetV0,
     ToBits,
 };
@@ -47,13 +48,15 @@ use snarkvm_console_program::{
     U8,
 };
 use snarkvm_ledger_block::ConfirmedTransaction;
-use snarkvm_ledger_puzzle::{Puzzle, Solution, SolutionID};
+use snarkvm_ledger_puzzle::{PuzzleTrait, SolutionID};
+use snarkvm_ledger_puzzle_epoch::SynthesisPuzzle;
 use snarkvm_synthesizer_program::Program;
-use snarkvm_utilities::{CanonicalDeserialize, CanonicalSerialize, ToBits as UToBits, Uniform};
+use snarkvm_utilities::{ToBits as UToBits, Uniform};
 
-use crate::class::*;
+use crate::{class::*, RustExecuteError};
 
 type N = TestnetV0;
+type A = AleoTestnetV0;
 
 #[pyfunction]
 pub fn sign_nonce(py: Python, private_key: &str, nonce: &[u8]) -> PyResult<PyObject> {
@@ -610,7 +613,7 @@ pub fn cast(
             .try_into()
             .map_err(|e| exceptions::PyValueError::new_err(format!("invalid destination type: {e}")))?,
     )
-    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast: {e}")))?;
+    .map_err(|e| RustExecuteError::new_err(format!("{e}")))?;
     let result = literal_to_bytes(result)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
     Ok(PyBytes::new_bound(py, &result).into())
@@ -660,4 +663,32 @@ pub fn rejected_tx_original_id(confirmed_transaction: &[u8]) -> PyResult<String>
         .to_unconfirmed_transaction_id()
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to get rejected tx original id: {e}")))?
         .to_string())
+}
+
+#[pyfunction]
+pub fn get_puzzle_program_data(py: Python, epoch_hash: &[u8]) -> PyResult<PyObject> {
+    let epoch_hash = <N as Network>::BlockHash::from_bytes_le(epoch_hash)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid epoch hash: {e}")))?;
+    let puzzle = SynthesisPuzzle::<N, A>::new();
+    let puzzle_program = puzzle
+        .get_epoch_program(epoch_hash)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to get puzzle program data: {e}")))?;
+    let inputs = puzzle_program
+        .construct_inputs(&mut ChaChaRng::seed_from_u64(random()))
+        .map_err(|e| {
+            exceptions::PyValueError::new_err(format!("failed to construct inputs for puzzle program data: {e}"))
+        })?;
+    let r1cs = puzzle_program.to_r1cs::<A>(inputs).map_err(|e| {
+        exceptions::PyValueError::new_err(format!("failed to convert puzzle program data to r1cs: {e}"))
+    })?;
+    let program = (*puzzle_program)
+        .to_bytes_le()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize puzzle program data: {e}")))?;
+    let program_bytes = PyBytes::new_bound(py, &program).into_py(py);
+    let tuple = vec![
+        program_bytes,
+        r1cs.num_constraints().into_py(py),
+        r1cs.num_variables().into_py(py),
+    ];
+    Ok(PyTuple::new_bound(py, tuple).into())
 }

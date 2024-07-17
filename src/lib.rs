@@ -1,11 +1,15 @@
 mod class;
 mod method;
+
 use method::*;
-use pyo3::prelude::*;
+use pyo3::{create_exception, exceptions::PyException, prelude::*};
+
+create_exception!(aleo_explorer_rust, RustExecuteError, PyException);
 
 #[pymodule]
 #[pyo3(name = "aleo_explorer_rust")]
 fn extension(m: &Bound<PyModule>) -> PyResult<()> {
+    m.add("RustExecuteError", m.py().get_type_bound::<RustExecuteError>())?;
     m.add_function(wrap_pyfunction!(sign_nonce, m)?)?;
     m.add_function(wrap_pyfunction!(bech32_decode, m)?)?;
     m.add_function(wrap_pyfunction!(bech32_encode, m)?)?;
@@ -28,5 +32,6 @@ fn extension(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hash_bytes_to_field, m)?)?;
     m.add_function(wrap_pyfunction!(solution_to_id, m)?)?;
     m.add_function(wrap_pyfunction!(rejected_tx_original_id, m)?)?;
+    m.add_function(wrap_pyfunction!(get_puzzle_program_data, m)?)?;
     Ok(())
 }
