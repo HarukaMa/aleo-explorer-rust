@@ -27,6 +27,7 @@ fn extension(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(chacha_random_seed, m)?)?;
     m.add_function(wrap_pyfunction!(chacha_random_value, m)?)?;
     m.add_function(wrap_pyfunction!(signature_to_address, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_key_to_address, m)?)?;
     m.add_function(wrap_pyfunction!(program_id_to_address, m)?)?;
     m.add_function(wrap_pyfunction!(cast, m)?)?;
     m.add_function(wrap_pyfunction!(hash_bytes_to_field, m)?)?;

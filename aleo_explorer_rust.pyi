@@ -1,5 +1,6 @@
 from typing import Any
 
+
 class RustExecuteError(Exception): ...
 
 
@@ -69,6 +70,9 @@ def chacha_random_value(
 
 
 def signature_to_address(signature: str) -> str: ...
+
+
+def compute_key_to_address(compute_key: bytes) -> str: ...
 
 
 def deserialize_g1affine(data: bytes) -> tuple[bytes, bytes, bool]: ...

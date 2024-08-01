@@ -1,17 +1,20 @@
 use std::{ops::Neg, str::FromStr};
 
 use bech32::{primitives::decode::CheckedHrpstring, Checksum};
-use pyo3::types::PyTuple;
+use pyo3::{
+    exceptions,
+    prelude::*,
+    types::{PyBytes, PyTuple},
+};
+use rand::random;
+use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng, ChaChaRng};
 // use leo_ast::Stub;
 // use leo_compiler::Compiler;
 // use leo_disassembler::disassemble_from_str;
 // use leo_errors::emitter::Handler;
 // use leo_span::{symbol::create_session_if_not_set_then, Symbol};
-use pyo3::{exceptions, prelude::*, types::PyBytes};
-use rand::random;
-use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng, ChaChaRng};
 use snarkvm_circuit_network::AleoTestnetV0;
-use snarkvm_console_account::{PrivateKey, Signature};
+use snarkvm_console_account::{ComputeKey, PrivateKey, Signature};
 use snarkvm_console_network::{
     prelude::{FromBytes, Pow, ToBytes},
     TestnetV0,
@@ -558,6 +561,13 @@ pub fn signature_to_address(signature: &str) -> PyResult<String> {
     let signature =
         Signature::<N>::from_str(signature).map_err(|_| exceptions::PyValueError::new_err("invalid signature"))?;
     Ok(signature.to_address().to_string())
+}
+
+#[pyfunction]
+pub fn compute_key_to_address(compute_key: &[u8]) -> PyResult<String> {
+    let compute_key = ComputeKey::<N>::from_bytes_le(compute_key)
+        .map_err(|_| exceptions::PyValueError::new_err("invalid compute key"))?;
+    Ok(compute_key.to_address().to_string())
 }
 
 #[pyfunction]
