@@ -1,13 +1,13 @@
 use std::{ops::Neg, str::FromStr};
 
-use bech32::{primitives::decode::CheckedHrpstring, Checksum};
+use bech32::{Checksum, primitives::decode::CheckedHrpstring};
 use pyo3::{
     exceptions,
     prelude::*,
     types::{PyBytes, PyTuple},
 };
 use rand::random;
-use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng, ChaChaRng};
+use rand_chacha::{ChaCha20Rng, ChaChaRng, rand_core::SeedableRng};
 // use leo_ast::Stub;
 // use leo_compiler::Compiler;
 // use leo_disassembler::disassemble_from_str;
@@ -16,9 +16,9 @@ use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng, ChaChaRng};
 use snarkvm_circuit_network::AleoTestnetV0;
 use snarkvm_console_account::{ComputeKey, PrivateKey, Signature};
 use snarkvm_console_network::{
-    prelude::{FromBytes, Pow, ToBytes},
     TestnetV0,
     ToBits,
+    prelude::{FromBytes, Pow, ToBytes},
 };
 use snarkvm_console_program::{
     Address,
@@ -26,6 +26,11 @@ use snarkvm_console_program::{
     Double,
     Field,
     Group,
+    I8,
+    I16,
+    I32,
+    I64,
+    I128,
     Identifier,
     Inverse,
     Literal,
@@ -38,17 +43,12 @@ use snarkvm_console_program::{
     SquareRoot,
     StringType,
     ToFields,
-    Value,
-    I128,
-    I16,
-    I32,
-    I64,
-    I8,
-    U128,
+    U8,
     U16,
     U32,
     U64,
-    U8,
+    U128,
+    Value,
 };
 use snarkvm_ledger_block::ConfirmedTransaction;
 use snarkvm_ledger_puzzle::{PuzzleTrait, SolutionID};
@@ -56,7 +56,7 @@ use snarkvm_ledger_puzzle_epoch::SynthesisPuzzle;
 use snarkvm_synthesizer_program::Program;
 use snarkvm_utilities::{ToBits as UToBits, Uniform};
 
-use crate::{class::*, RustExecuteError};
+use crate::{RustExecuteError, class::*};
 
 type N = TestnetV0;
 type A = AleoTestnetV0;
@@ -493,6 +493,8 @@ pub fn chacha_random_seed(
     destination_locator: u64,
     destination_type_id: u8,
     additional_seeds: Vec<Vec<u8>>,
+    v3_random: bool,
+    nonce: Option<u64>,
 ) -> PyResult<PyObject> {
     let transition_id = <N as Network>::TransitionID::from_bytes_le(transition_id)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid transition id: {e}")))?;
@@ -512,6 +514,12 @@ pub fn chacha_random_seed(
     preimage.extend_from_slice(&transition_id.to_bits_le());
     preimage.extend_from_slice(&program_id.to_bits_le());
     preimage.extend_from_slice(&function_name.to_bits_le());
+    if v3_random {
+        if let None = nonce {
+            return Err(exceptions::PyValueError::new_err("nonce is required for v3 random"));
+        }
+        preimage.extend_from_slice(&nonce.unwrap().to_bits_le());
+    }
     preimage.extend_from_slice(&destination_locator.to_bits_le());
     preimage.extend_from_slice(&destination_type_id.to_bits_le());
     for seed in additional_seeds_value {

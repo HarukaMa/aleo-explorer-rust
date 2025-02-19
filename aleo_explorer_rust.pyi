@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 
 class RustExecuteError(Exception): ...
@@ -60,6 +60,8 @@ def chacha_random_seed(
     destination_locator: int,
     destination_type_id: int,
     additional_seeds: list[bytes],
+    v3_random: bool,
+    nonce: Optional[int],
 ) -> bytes: ...
 
 
