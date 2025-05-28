@@ -4,13 +4,11 @@ build-backend = "maturin"
 
 [project]
 name = "aleo-explorer-rust"
-author = "Haruka Ma"
+description = "Aleo Explorer Rust Tools"
+authors = [ { name = "Haruka Ma" } ]
 license.file = "COPYING"
 requires-python = ">=3.7"
-description = "Aleo Explorer Rust Tools"
-url = "https://github.com/HarukaMa/aleo-explorer-rust"
-long_description = "file: README.md"
-long_description_content_type = "text/markdown"
+readme = "README.md"
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
@@ -20,7 +18,8 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Private :: Upload Later",
 ]
-
+dynamic = [ "version" ]
+urls.Source = "https://github.com/HarukaMa/aleo-explorer-rust"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
