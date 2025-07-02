@@ -72,7 +72,7 @@ pub fn sign_nonce(py: Python, private_key: &str, nonce: &[u8]) -> PyResult<PyObj
                 .map_err(|_| exceptions::PyValueError::new_err("invalid signature"))
         })
         .map_err(|_| exceptions::PyValueError::new_err("invalid signature"))??;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 pub enum Bech32mUnlimited {}
@@ -101,7 +101,7 @@ pub fn bech32_decode(py: Python, data: &str) -> PyResult<(String, PyObject)> {
         .map_err(|err| exceptions::PyValueError::new_err(format!("unable to decode bech32: {}", err.to_string())))?;
     Ok((
         p.hrp().to_string(),
-        PyBytes::new_bound(py, &p.byte_iter().collect::<Vec<u8>>()).into(),
+        PyBytes::new(py, &p.byte_iter().collect::<Vec<u8>>()).into(),
     ))
 }
 
@@ -212,7 +212,7 @@ pub fn compile_program(py: Python, program: &str, program_name: &str, imports: V
     //         let result = program
     //             .to_bytes_le()
     //             .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to serialize program: {e}")))?;
-    //         Ok(PyBytes::new_bound(py, &result).into())
+    //         Ok(PyBytes::new(py, &result).into())
     //     })
 }
 
@@ -223,7 +223,7 @@ pub fn parse_program(py: Python, program: &str) -> PyResult<PyObject> {
     let result = program
         .to_bytes_le()
         .map_err(|e| exceptions::PyRuntimeError::new_err(format!("unable to serialize program: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 pub fn literal_to_bytes(literal: Literal<N>) -> anyhow::Result<Vec<u8>> {
@@ -310,7 +310,7 @@ pub fn hash_ops(py: Python, input: &[u8], type_: &str, destination_type: ExLiter
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast to destination type: {e}")))?;
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 #[pyfunction]
@@ -346,7 +346,7 @@ pub fn commit_ops(
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to cast to destination type: {e}")))?;
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 #[pyfunction]
@@ -382,7 +382,7 @@ pub fn field_ops(py: Python, a: ExField, b: ExField, op: &str) -> PyResult<PyObj
     };
     let result =
         literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 #[pyfunction]
@@ -418,7 +418,7 @@ pub fn group_ops(py: Python, a: ExGroup, b: PyObject, op: &str) -> PyResult<PyOb
     };
     let result =
         literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 #[pyfunction]
@@ -456,7 +456,7 @@ pub fn scalar_ops(py: Python, a: ExScalar, b: PyObject, op: &str) -> PyResult<Py
     };
     let result =
         literal_to_bytes(result).map_err(|e| exceptions::PyValueError::new_err(format!("operation failed: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 #[pyfunction]
@@ -480,7 +480,7 @@ pub fn finalize_random_seed(
         .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))?
         .to_bytes_le()
         .map_err(|e| exceptions::PyValueError::new_err(format!("serialization failed: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 #[pyfunction]
@@ -529,7 +529,7 @@ pub fn chacha_random_seed(
         .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))?
         .to_bytes_le()
         .map_err(|e| exceptions::PyValueError::new_err(format!("serialization failed: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 // I'm not aware of any completely equivalent implementation of chacha20 rng in Python, so we
@@ -561,7 +561,7 @@ pub fn chacha_random_value(py: Python, random_seed: &[u8], destination_type: ExL
     };
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 #[pyfunction]
@@ -634,7 +634,7 @@ pub fn cast(
     .map_err(|e| RustExecuteError::new_err(format!("{e}")))?;
     let result = literal_to_bytes(result)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 #[pyfunction]
@@ -653,7 +653,7 @@ pub fn hash_bytes_to_field(py: Python, input: &[u8], type_: &str) -> PyResult<Py
     let result = output
         .to_bytes_le()
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
-    Ok(PyBytes::new_bound(py, &result).into())
+    Ok(PyBytes::new(py, &result).into())
 }
 
 #[pyfunction]
@@ -664,7 +664,7 @@ pub fn solution_to_id(py: Python, epoch_hash: &str, address: &str, counter: u64)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid address: {e}")))?;
     let solution_id = SolutionID::<N>::new(epoch_hash, address, counter)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid solution id: {e}")))?;
-    Ok(PyBytes::new_bound(
+    Ok(PyBytes::new(
         py,
         &solution_id
             .to_bytes_le()
@@ -709,4 +709,20 @@ pub fn get_puzzle_program_data(py: Python, epoch_hash: &[u8]) -> PyResult<PyObje
         r1cs.num_variables().into_py(py),
     ];
     Ok(PyTuple::new_bound(py, tuple).into())
+}
+
+#[pyfunction]
+pub fn sign_verify(signature: &[u8], address: &[u8], message: &[u8]) -> PyResult<bool> {
+    let signature = Signature::<N>::from_bytes_le(signature)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid signature: {e}")))?;
+    let address = Address::<N>::from_bytes_le(address)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid address: {e}")))?;
+    let message = Value::<N>::from_bytes_le(message)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid message: {e}")))?;
+
+    let message_fields = message
+        .to_fields()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to convert message to fields: {e}")))?;
+    let is_valid = signature.verify(&address, &message_fields);
+    Ok(is_valid)
 }
