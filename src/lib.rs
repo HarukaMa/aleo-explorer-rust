@@ -34,5 +34,6 @@ fn extension(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(solution_to_id, m)?)?;
     m.add_function(wrap_pyfunction!(rejected_tx_original_id, m)?)?;
     m.add_function(wrap_pyfunction!(get_puzzle_program_data, m)?)?;
+    m.add_function(wrap_pyfunction!(sign_verify, m)?)?;
     Ok(())
 }
