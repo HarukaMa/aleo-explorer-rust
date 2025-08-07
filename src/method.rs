@@ -726,3 +726,10 @@ pub fn sign_verify(signature: &[u8], address: &[u8], message: &[u8]) -> PyResult
     let is_valid = signature.verify(&address, &message_fields);
     Ok(is_valid)
 }
+
+#[pyfunction]
+pub fn program_to_string(program: &[u8]) -> PyResult<String> {
+    let program = Program::<N>::from_bytes_le(program)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid program: {e}")))?;
+    Ok(program.to_string())
+}
