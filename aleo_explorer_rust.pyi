@@ -49,6 +49,7 @@ def finalize_random_seed(
     block_cumulative_weight: int,
     block_cumulative_proof_target: int,
     previous_block_hash: bytes,
+    block_timestamp: Optional[int],
 ) -> bytes: ...
 
 

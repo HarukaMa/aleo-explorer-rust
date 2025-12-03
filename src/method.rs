@@ -467,15 +467,19 @@ pub fn finalize_random_seed(
     block_cumulative_weight: u128,
     block_cumulative_proof_target: u128,
     previous_block_hash: &[u8],
+    block_timestamp: Option<i64>,
 ) -> PyResult<PyObject> {
     let previous_block_hash = <N as Network>::BlockHash::from_bytes_le(previous_block_hash)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid block hash: {e}")))?;
-    let mut preimage = Vec::with_capacity(605);
+    let mut preimage = Vec::new();
     preimage.extend_from_slice(&block_round.to_bits_le());
     preimage.extend_from_slice(&block_height.to_bits_le());
     preimage.extend_from_slice(&block_cumulative_weight.to_bits_le());
     preimage.extend_from_slice(&block_cumulative_proof_target.to_bits_le());
     preimage.extend_from_slice(&previous_block_hash.to_bits_le());
+    if let Some(block_timestamp) = block_timestamp {
+        preimage.extend_from_slice(&block_timestamp.to_bits_le());
+    }
     let result = N::hash_bhp768(&preimage)
         .map_err(|e| exceptions::PyValueError::new_err(format!("hash failed: {e}")))?
         .to_bytes_le()
@@ -515,7 +519,7 @@ pub fn chacha_random_seed(
     preimage.extend_from_slice(&program_id.to_bits_le());
     preimage.extend_from_slice(&function_name.to_bits_le());
     if v3_random {
-        if let None = nonce {
+        if nonce.is_none() {
             return Err(exceptions::PyValueError::new_err("nonce is required for v3 random"));
         }
         preimage.extend_from_slice(&nonce.unwrap().to_bits_le());
