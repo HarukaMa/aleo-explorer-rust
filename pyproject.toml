@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "aleo-explorer-rust"
 description = "Aleo Explorer Rust Tools"
-authors = [ { name = "Haruka Ma" } ]
+authors = [{ name = "Haruka Ma" }]
 license.file = "COPYING"
 requires-python = ">=3.7"
 readme = "README.md"
@@ -18,7 +18,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Private :: Upload Later",
 ]
-dynamic = [ "version" ]
+dynamic = ["version"]
 urls.Source = "https://github.com/HarukaMa/aleo-explorer-rust"
 
 [tool.maturin]

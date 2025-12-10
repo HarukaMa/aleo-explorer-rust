@@ -36,5 +36,8 @@ fn extension(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_puzzle_program_data, m)?)?;
     m.add_function(wrap_pyfunction!(sign_verify, m)?)?;
     m.add_function(wrap_pyfunction!(program_to_string, m)?)?;
+    m.add_function(wrap_pyfunction!(deserialize_ops, m)?)?;
+    m.add_function(wrap_pyfunction!(serialize_ops, m)?)?;
+    m.add_function(wrap_pyfunction!(ecdsa_verify_ops, m)?)?;
     Ok(())
 }
