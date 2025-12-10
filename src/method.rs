@@ -823,7 +823,7 @@ pub fn get_puzzle_program_data(py: Python, epoch_hash: &[u8]) -> PyResult<PyObje
         r1cs.num_constraints().into_py(py),
         r1cs.num_variables().into_py(py),
     ];
-    Ok(PyTuple::new(py, tuple).into())
+    Ok(PyTuple::new_bound(py, tuple).into())
 }
 
 #[pyfunction]
