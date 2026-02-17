@@ -883,7 +883,7 @@ pub fn deserialize_ops(
         &destination_type,
         &get_struct,
     )
-    .map_err(|e| exceptions::PyValueError::new_err(format!("failed to evaluate deserialize: {e}")))?;
+    .map_err(|e| RustExecuteError::new_err(format!("failed to evaluate deserialize: {e}")))?;
     let result = output
         .to_bytes_le()
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
