@@ -1,4 +1,4 @@
-use std::{ops::Neg, str::FromStr};
+use std::{collections::HashMap, ops::Neg, str::FromStr};
 
 use bech32::{Checksum, primitives::decode::CheckedHrpstring};
 use pyo3::{
@@ -36,6 +36,7 @@ use snarkvm_console_program::{
     Inverse,
     Literal,
     LiteralType,
+    Locator,
     Network,
     Plaintext,
     PlaintextType,
@@ -856,6 +857,7 @@ pub fn deserialize_ops(
     input: &[u8],
     destination_type: &[u8],
     program: &[u8],
+    imported_programs: Vec<Vec<u8>>,
 ) -> PyResult<PyObject> {
     let input = Value::<N>::from_bytes_le(input)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
@@ -864,7 +866,21 @@ pub fn deserialize_ops(
     let program = Program::<N>::from_bytes_le(program)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid program: {e}")))?;
 
+    let mut imports: HashMap<ProgramID<N>, Program<N>> = HashMap::new();
+    for imported in imported_programs {
+        let imported = Program::<N>::from_bytes_le(&imported)
+            .map_err(|e| exceptions::PyValueError::new_err(format!("invalid imported program: {e}")))?;
+        imports.insert(*imported.id(), imported);
+    }
+
     let get_struct = |identifier: &Identifier<N>| program.get_struct(identifier).cloned();
+
+    let get_external_struct = |locator: &Locator<N>| -> anyhow::Result<_> {
+        let ext_program = imports
+            .get(locator.program_id())
+            .ok_or_else(|| anyhow::anyhow!("imported program '{}' not found", locator.program_id()))?;
+        ext_program.get_struct(locator.resource()).cloned()
+    };
 
     let bits = match input {
         Value::Plaintext(plaintext) => plaintext
@@ -882,6 +898,7 @@ pub fn deserialize_ops(
         &bits,
         &destination_type,
         &get_struct,
+        &get_external_struct,
     )
     .map_err(|e| RustExecuteError::new_err(format!("failed to evaluate deserialize: {e}")))?;
     let result = output
