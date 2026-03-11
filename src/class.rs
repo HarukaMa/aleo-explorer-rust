@@ -33,6 +33,7 @@ impl TryFrom<ExLiteralType> for LiteralType {
             14 => LiteralType::Scalar,
             15 => LiteralType::Signature,
             16 => LiteralType::String,
+            17 => LiteralType::Identifier,
             _ => anyhow::bail!("invalid literal type"),
         })
     }

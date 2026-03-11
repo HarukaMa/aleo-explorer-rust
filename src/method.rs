@@ -33,6 +33,7 @@ use snarkvm_console_program::{
     I64,
     I128,
     Identifier,
+    IdentifierLiteral,
     Inverse,
     Literal,
     LiteralType,
@@ -672,8 +673,9 @@ pub fn chacha_random_value(py: Python, random_seed: &[u8], destination_type: ExL
         LiteralType::U64 => Literal::U64(U64::rand(&mut rng)),
         LiteralType::U128 => Literal::U128(U128::rand(&mut rng)),
         LiteralType::Scalar => Literal::Scalar(Scalar::rand(&mut rng)),
-        LiteralType::Signature => return Err(exceptions::PyValueError::new_err("invalid destination type")),
-        LiteralType::String => return Err(exceptions::PyValueError::new_err("invalid destination type")),
+        LiteralType::Signature | LiteralType::String | LiteralType::Identifier => {
+            return Err(exceptions::PyValueError::new_err("invalid destination type"))
+        }
     };
     let result = literal_to_bytes(output)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize output: {e}")))?;
@@ -739,6 +741,9 @@ pub fn cast(
             Signature::<N>::from_str(input).map(|signature| Literal::Signature(Box::from(signature)))
         }
         LiteralType::String => StringType::from_str(input).map(Literal::String),
+        LiteralType::Identifier => {
+            IdentifierLiteral::<N>::from_str(input).map(|id| Literal::Identifier(Box::new(id)))
+        }
     }
     .map_err(|e| exceptions::PyValueError::new_err(format!("invalid input: {e}")))?;
     let result = cast_function(
