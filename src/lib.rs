@@ -39,5 +39,6 @@ fn extension(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(deserialize_ops, m)?)?;
     m.add_function(wrap_pyfunction!(serialize_ops, m)?)?;
     m.add_function(wrap_pyfunction!(ecdsa_verify_ops, m)?)?;
+    m.add_function(wrap_pyfunction!(dynamic_future_key_from_future, m)?)?;
     Ok(())
 }

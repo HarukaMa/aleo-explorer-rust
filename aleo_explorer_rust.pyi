@@ -115,3 +115,6 @@ def serialize_ops(variant: int, input: bytes, destination_type: bytes) -> bytes:
 
 
 def ecdsa_verify_ops(variant: int, signature: bytes, public_key: bytes, message: bytes) -> bool: ...
+
+
+def dynamic_future_key_from_future(future_bytes: bytes) -> tuple[bytes, bytes, bytes, bytes]: ...

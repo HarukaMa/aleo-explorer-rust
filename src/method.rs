@@ -25,7 +25,9 @@ use snarkvm_console_program::{
     ArrayType,
     Boolean,
     Double,
+    DynamicFuture,
     Field,
+    Future,
     Group,
     I8,
     I16,
@@ -944,4 +946,37 @@ pub fn ecdsa_verify_ops(variant: u8, signature: &[u8], public_key: &[u8], messag
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid message: {e}")))?;
     evaluate_ecdsa_verification(ECDSAVerifyVariant::new(variant), &signature, &public_key, &message)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to evaluate ecdsa verify: {e}")))
+}
+
+#[pyfunction]
+pub fn dynamic_future_key_from_future(
+    py: Python,
+    future_bytes: &[u8],
+) -> PyResult<(PyObject, PyObject, PyObject, PyObject)> {
+    let future = Future::<N>::from_bytes_le(future_bytes)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid future: {e}")))?;
+    let dynamic = DynamicFuture::from_future(&future)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to compute dynamic future: {e}")))?;
+    let program_name = dynamic
+        .program_name()
+        .to_bytes_le()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize program_name: {e}")))?;
+    let program_network = dynamic
+        .program_network()
+        .to_bytes_le()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize program_network: {e}")))?;
+    let function_name = dynamic
+        .function_name()
+        .to_bytes_le()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize function_name: {e}")))?;
+    let checksum = dynamic
+        .checksum()
+        .to_bytes_le()
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize checksum: {e}")))?;
+    Ok((
+        PyBytes::new(py, &program_name).into(),
+        PyBytes::new(py, &program_network).into(),
+        PyBytes::new(py, &function_name).into(),
+        PyBytes::new(py, &checksum).into(),
+    ))
 }
