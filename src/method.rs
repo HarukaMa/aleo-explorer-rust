@@ -949,6 +949,23 @@ pub fn ecdsa_verify_ops(variant: u8, signature: &[u8], public_key: &[u8], messag
 }
 
 #[pyfunction]
+pub fn aleo_g_powers(py: Python) -> PyResult<PyObject> {
+    let g_powers = N::g_powers();
+    let elements: Vec<PyObject> = g_powers
+        .iter()
+        .map(|g| {
+            let bytes = g
+                .to_bytes_le()
+                .map_err(|e| exceptions::PyValueError::new_err(format!("failed to serialize group: {e}")))?;
+            Ok(PyBytes::new(py, &bytes).into())
+        })
+        .collect::<PyResult<_>>()?;
+    Ok(PyTuple::new(py, &elements)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("failed to create tuple: {e}")))?
+        .into())
+}
+
+#[pyfunction]
 pub fn dynamic_future_key_from_future(
     py: Python,
     future_bytes: &[u8],
