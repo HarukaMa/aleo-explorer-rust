@@ -65,9 +65,11 @@ use snarkvm_synthesizer_program::{
     ECDSAVerifyVariant,
     Program,
     SerializeVariant,
+    SnarkVerifyVariant,
     evaluate_deserialize,
     evaluate_ecdsa_verification,
     evaluate_serialize,
+    evaluate_varuna_proof,
 };
 use snarkvm_utilities::{ToBits as UToBits, ToBitsRaw, Uniform};
 
@@ -946,6 +948,31 @@ pub fn ecdsa_verify_ops(variant: u8, signature: &[u8], public_key: &[u8], messag
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid message: {e}")))?;
     evaluate_ecdsa_verification(ECDSAVerifyVariant::new(variant), &signature, &public_key, &message)
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to evaluate ecdsa verify: {e}")))
+}
+
+#[pyfunction]
+pub fn snark_verify_ops(
+    variant: u8,
+    verifying_key: &[u8],
+    varuna_version: &[u8],
+    inputs: &[u8],
+    proof: &[u8],
+) -> PyResult<bool> {
+    let verifying_key = Value::<N>::from_bytes_le(verifying_key)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid verifying key: {e}")))?;
+    let varuna_version = Value::<N>::from_bytes_le(varuna_version)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid varuna version: {e}")))?;
+    let inputs = Value::<N>::from_bytes_le(inputs)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid inputs: {e}")))?;
+    let proof = Value::<N>::from_bytes_le(proof)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid proof: {e}")))?;
+    let variant = match variant {
+        0 => SnarkVerifyVariant::Varuna,
+        1 => SnarkVerifyVariant::VarunaBatch,
+        v => return Err(exceptions::PyValueError::new_err(format!("invalid variant: {v}"))),
+    };
+    evaluate_varuna_proof(variant, "snark.verify", &verifying_key, varuna_version, &inputs, &proof)
+        .map_err(|e| RustExecuteError::new_err(format!("snark.verify failed: {e}")))
 }
 
 #[pyfunction]
