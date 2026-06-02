@@ -444,6 +444,7 @@ pub fn commit_ops(
         .try_into()
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid randomness: {e}")))?;
     let value_bits = value.to_bits_le();
+    let value_bits_raw = value.to_bits_raw_le();
     let output = match type_ {
         "bhp256" => N::commit_to_group_bhp256(&value_bits, &randomness),
         "bhp512" => N::commit_to_group_bhp512(&value_bits, &randomness),
@@ -451,6 +452,12 @@ pub fn commit_ops(
         "bhp1024" => N::commit_to_group_bhp1024(&value_bits, &randomness),
         "ped64" => N::commit_to_group_ped64(&value_bits, &randomness),
         "ped128" => N::commit_to_group_ped128(&value_bits, &randomness),
+        "bhp256_raw" => N::commit_to_group_bhp256(&value_bits_raw, &randomness),
+        "bhp512_raw" => N::commit_to_group_bhp512(&value_bits_raw, &randomness),
+        "bhp768_raw" => N::commit_to_group_bhp768(&value_bits_raw, &randomness),
+        "bhp1024_raw" => N::commit_to_group_bhp1024(&value_bits_raw, &randomness),
+        "ped64_raw" => N::commit_to_group_ped64(&value_bits_raw, &randomness),
+        "ped128_raw" => N::commit_to_group_ped128(&value_bits_raw, &randomness),
         _ => return Err(exceptions::PyValueError::new_err(format!("invalid type: {type_}"))),
     }
     .map_err(|e| exceptions::PyAssertionError::new_err(format!("failed to commit: {e}")))?;
