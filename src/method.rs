@@ -82,7 +82,7 @@ type A = AleoTestnetV0;
 pub fn sign_nonce(py: Python, private_key: &str, nonce: &[u8]) -> PyResult<PyObject> {
     let private_key =
         PrivateKey::<N>::from_str(private_key).map_err(|_| exceptions::PyValueError::new_err("invalid private key"))?;
-    let result = Signature::sign_bytes(&private_key, nonce, &mut rand::thread_rng())
+    let result = Signature::sign_bytes(&private_key, nonce, &mut rand::rng())
         .map(|signature| {
             signature
                 .to_bytes_le()
