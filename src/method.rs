@@ -867,6 +867,23 @@ pub fn program_to_string(program: &[u8]) -> PyResult<String> {
 }
 
 #[pyfunction]
+pub fn component_to_string(program: &[u8], name: &str) -> PyResult<String> {
+    let program = Program::<N>::from_bytes_le(program)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid program: {e}")))?;
+    let name = Identifier::<N>::from_str(name)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid identifier: {e}")))?;
+    if let Some(function) = program.functions().get(&name) {
+        Ok(function.to_string())
+    } else if let Some(closure) = program.closures().get(&name) {
+        Ok(closure.to_string())
+    } else if let Some(view) = program.views().get(&name) {
+        Ok(view.to_string())
+    } else {
+        Err(exceptions::PyValueError::new_err(format!("'{name}' is not a function, closure, or view")))
+    }
+}
+
+#[pyfunction]
 pub fn deserialize_ops(
     py: Python,
     variant: u8,
