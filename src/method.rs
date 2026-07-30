@@ -16,6 +16,8 @@ use rand_chacha::{ChaCha20Rng, ChaChaRng, rand_core::SeedableRng};
 use snarkvm_circuit_network::AleoTestnetV0;
 use snarkvm_console_account::{ComputeKey, PrivateKey, Signature};
 use snarkvm_console_network::{
+    CanaryV0,
+    MainnetV0,
     TestnetV0,
     ToBits,
     prelude::{FromBytes, Pow, ToBytes},
@@ -57,7 +59,7 @@ use snarkvm_console_program::{
     U128,
     Value,
 };
-use snarkvm_ledger_block::ConfirmedTransaction;
+use snarkvm_ledger_block::{ConfirmedTransaction, Deployment, Execution};
 use snarkvm_ledger_puzzle::{PuzzleTrait, SolutionID};
 use snarkvm_ledger_puzzle_epoch::SynthesisPuzzle;
 use snarkvm_synthesizer_program::{
@@ -70,6 +72,12 @@ use snarkvm_synthesizer_program::{
     evaluate_ecdsa_verification,
     evaluate_serialize,
     evaluate_varuna_proof,
+};
+use snarkvm_synthesizer_process::{
+    Process,
+    Stack,
+    deployment_cost as canonical_deployment_cost,
+    execution_cost as canonical_execution_cost,
 };
 use snarkvm_utilities::{ToBits as UToBits, ToBitsRaw, Uniform};
 
@@ -813,6 +821,94 @@ pub fn rejected_tx_original_id(confirmed_transaction: &[u8]) -> PyResult<String>
         .to_unconfirmed_transaction_id()
         .map_err(|e| exceptions::PyValueError::new_err(format!("failed to get rejected tx original id: {e}")))?
         .to_string())
+}
+
+fn load_fee_process<T: Network>(programs: Vec<(Vec<u8>, u16)>) -> PyResult<Process<T>> {
+    let process = Process::<T>::load()
+        .map_err(|e| exceptions::PyRuntimeError::new_err(format!("failed to initialize fee process: {e}")))?;
+    let programs = programs
+        .into_iter()
+        .map(|(program, edition)| {
+            Program::<T>::from_bytes_le(&program)
+                .map(|program| (program, edition))
+                .map_err(|e| exceptions::PyValueError::new_err(format!("invalid fee program: {e}")))
+        })
+        .collect::<PyResult<Vec<_>>>()?;
+    if let Some((credits, edition)) = programs.iter().find(|(program, _)| program.id().to_string() == "credits.aleo") {
+        let stack = Stack::new_raw(&process, credits, *edition)
+            .and_then(|stack| {
+                stack.initialize_and_check(&process)?;
+                Ok(stack)
+            })
+            .map_err(|e| exceptions::PyValueError::new_err(format!("invalid credits program: {e}")))?;
+        process.lock().add_stack(stack);
+    }
+    process
+        .lock()
+        .add_programs_with_editions(&programs)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid fee program set: {e}")))?;
+    Ok(process)
+}
+
+fn deployment_cost_for<T: Network>(
+    deployment: &[u8],
+    height: u32,
+    programs: Vec<(Vec<u8>, u16)>,
+) -> PyResult<(u64, u64, u64, u64, u64)> {
+    let deployment = Deployment::<T>::from_bytes_le(deployment)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid deployment: {e}")))?;
+    let process = load_fee_process::<T>(programs)?;
+    let consensus_version = T::CONSENSUS_VERSION(height)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid block height: {e}")))?;
+    let (minimum, (storage, synthesis, constructor, namespace)) =
+        canonical_deployment_cost(&process, &deployment, consensus_version)
+            .map_err(|e| exceptions::PyRuntimeError::new_err(format!("failed to calculate deployment cost: {e}")))?;
+    Ok((minimum, storage, synthesis, constructor, namespace))
+}
+
+#[pyfunction]
+pub fn deployment_cost(
+    deployment: &[u8],
+    network: u16,
+    height: u32,
+    programs: Vec<(Vec<u8>, u16)>,
+) -> PyResult<(u64, u64, u64, u64, u64)> {
+    match network {
+        0 => deployment_cost_for::<MainnetV0>(deployment, height, programs),
+        1 => deployment_cost_for::<TestnetV0>(deployment, height, programs),
+        2 => deployment_cost_for::<CanaryV0>(deployment, height, programs),
+        _ => Err(exceptions::PyValueError::new_err("invalid network")),
+    }
+}
+
+fn execution_cost_for<T: Network>(
+    execution: &[u8],
+    height: u32,
+    programs: Vec<(Vec<u8>, u16)>,
+) -> PyResult<(u64, u64, u64)> {
+    let execution = Execution::<T>::from_bytes_le(execution)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid execution: {e}")))?;
+    let process = load_fee_process::<T>(programs)?;
+    let consensus_version = T::CONSENSUS_VERSION(height)
+        .map_err(|e| exceptions::PyValueError::new_err(format!("invalid block height: {e}")))?;
+    let (minimum, (storage, finalize)) = canonical_execution_cost(&process, &execution, consensus_version)
+        .map_err(|e| exceptions::PyRuntimeError::new_err(format!("failed to calculate execution cost: {e}")))?;
+    Ok((minimum, storage, finalize))
+}
+
+#[pyfunction]
+pub fn execution_cost(
+    execution: &[u8],
+    network: u16,
+    height: u32,
+    programs: Vec<(Vec<u8>, u16)>,
+) -> PyResult<(u64, u64, u64)> {
+    match network {
+        0 => execution_cost_for::<MainnetV0>(execution, height, programs),
+        1 => execution_cost_for::<TestnetV0>(execution, height, programs),
+        2 => execution_cost_for::<CanaryV0>(execution, height, programs),
+        _ => Err(exceptions::PyValueError::new_err("invalid network")),
+    }
 }
 
 #[pyfunction]

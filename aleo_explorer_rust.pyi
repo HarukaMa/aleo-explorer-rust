@@ -98,6 +98,21 @@ def solution_to_id(epoch_hash: str, address: str, counter: int) -> bytes: ...
 
 def rejected_tx_original_id(confirmed_transaction: bytes) -> str: ...
 
+def deployment_cost(
+    deployment: bytes,
+    network: int,
+    height: int,
+    programs: list[tuple[bytes, int]],
+) -> tuple[int, int, int, int, int]: ...
+
+
+def execution_cost(
+    execution: bytes,
+    network: int,
+    height: int,
+    programs: list[tuple[bytes, int]],
+) -> tuple[int, int, int]: ...
+
 
 def get_puzzle_program_data(epoch_hash: bytes) -> tuple[bytes, int, int]: ...
 

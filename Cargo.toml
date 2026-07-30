@@ -2,6 +2,7 @@
 name = "aleo-explorer-rust"
 version = "0.15.1"
 edition = "2021"
+rust-version = "1.88"
 
 [dependencies]
 
@@ -9,17 +10,18 @@ pyo3 = { version = "0.23.5", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.6"
 
-snarkvm-algorithms = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-circuit-network = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-curves = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-console-account = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-console-network = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-console-program = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-synthesizer-program = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-utilities = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-ledger-puzzle = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-ledger-puzzle-epoch = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
-snarkvm-ledger-block = { git = "https://github.com/ProvableHQ/snarkVM", rev = "357899f8e" }
+snarkvm-algorithms = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-circuit-network = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-curves = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-console-account = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-console-network = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-console-program = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-synthesizer-program = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-synthesizer-process = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-utilities = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-ledger-puzzle = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-ledger-puzzle-epoch = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
+snarkvm-ledger-block = { git = "https://github.com/ProvableHQ/snarkVM", rev = "8902106ccc810d784ae9edb90ebfde17f94ef41a" }
 
 
 #leo-compiler = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
