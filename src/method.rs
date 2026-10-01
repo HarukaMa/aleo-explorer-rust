@@ -13,10 +13,12 @@ use rand_chacha::{ChaCha20Rng, ChaChaRng, rand_core::SeedableRng};
 // use leo_disassembler::disassemble_from_str;
 // use leo_errors::emitter::Handler;
 // use leo_span::{symbol::create_session_if_not_set_then, Symbol};
+use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_circuit_network::AleoTestnetV0;
 use snarkvm_console_account::{ComputeKey, PrivateKey, Signature};
 use snarkvm_console_network::{
     CanaryV0,
+    ConsensusVersion,
     MainnetV0,
     TestnetV0,
     ToBits,
@@ -1077,11 +1079,36 @@ pub fn snark_verify_ops(
     varuna_version: &[u8],
     inputs: &[u8],
     proof: &[u8],
+    network: u16,
+    height: u32,
 ) -> PyResult<bool> {
     let verifying_key = Value::<N>::from_bytes_le(verifying_key)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid verifying key: {e}")))?;
     let varuna_version = Value::<N>::from_bytes_le(varuna_version)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid varuna version: {e}")))?;
+    let version = match &varuna_version {
+        Value::Plaintext(Plaintext::Literal(Literal::U8(version), _)) => {
+            VarunaVersion::from_bytes_le(&[**version])
+                .map_err(|e| RustExecuteError::new_err(format!("snark.verify failed: {e}")))?
+        }
+        _ => return Err(RustExecuteError::new_err("Expected the Varuna version to be a U8 literal.")),
+    };
+    let consensus_version = match network {
+        0 => MainnetV0::CONSENSUS_VERSION(height),
+        1 => TestnetV0::CONSENSUS_VERSION(height),
+        2 => CanaryV0::CONSENSUS_VERSION(height),
+        _ => return Err(exceptions::PyValueError::new_err("invalid network")),
+    }
+    .map_err(|e| exceptions::PyValueError::new_err(format!("invalid block height: {e}")))?;
+    match version {
+        VarunaVersion::V1 | VarunaVersion::V2 if consensus_version >= ConsensusVersion::V21 => {
+            return Err(RustExecuteError::new_err("Varuna V3 is required for snark verification"));
+        }
+        VarunaVersion::V3 if consensus_version < ConsensusVersion::V21 => {
+            return Err(RustExecuteError::new_err("Invalid Varuna version"));
+        }
+        _ => {}
+    }
     let inputs = Value::<N>::from_bytes_le(inputs)
         .map_err(|e| exceptions::PyValueError::new_err(format!("invalid inputs: {e}")))?;
     let proof = Value::<N>::from_bytes_le(proof)
