@@ -1,8 +1,8 @@
 [package]
 name = "aleo-explorer-rust"
-version = "0.16.0"
+version = "0.17.0"
 edition = "2021"
-rust-version = "1.88"
+rust-version = "1.96"
 
 [dependencies]
 
@@ -10,18 +10,18 @@ pyo3 = { version = "0.23.5", features = ["extension-module", "num-bigint"] }
 
 num-bigint = "0.4.6"
 
-snarkvm-algorithms = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-circuit-network = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-curves = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-console-account = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-console-network = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-console-program = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-synthesizer-program = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-synthesizer-process = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-utilities = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-ledger-puzzle = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-ledger-puzzle-epoch = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
-snarkvm-ledger-block = { git = "https://github.com/ProvableHQ/snarkVM", rev = "11010ba64efce5f91b11f2336ef9a0ec581c9f6c" }
+snarkvm-algorithms = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-circuit-network = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-curves = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-console-account = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-console-network = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-console-program = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-synthesizer-program = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-synthesizer-process = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-utilities = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-ledger-puzzle = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-ledger-puzzle-epoch = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
+snarkvm-ledger-block = { git = "https://github.com/ProvableHQ/snarkVM", rev = "532d8fdf779f17203252ab60a26cc950a2197234" }
 
 
 #leo-compiler = { git = "https://github.com/AleoHQ/leo", rev = "ac3f667e19e15e84d704efa2ae5b948318361e00" }
